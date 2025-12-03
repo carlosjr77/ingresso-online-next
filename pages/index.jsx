@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 // --- DADOS MOCKADOS DE EVENTOS (EMBUTIDOS para resolver o erro de fetch) ---
-// O conteúdo de events.json foi movido para cá para garantir o carregamento
 const mockEventsData = [
     {
         "id": "show-banda-a",
@@ -10,7 +9,8 @@ const mockEventsData = [
         "location": "Arena Principal",
         "price": 120.00,
         "description": "A turnê de lançamento mais aguardada do ano. Um espetáculo de luz e som com a Banda A.",
-        "availability": 1500
+        "availability": 1500,
+        "discountRate": 0.00 // Sem desconto
     },
     {
         "id": "congresso-tech-2026",
@@ -19,7 +19,8 @@ const mockEventsData = [
         "location": "Centro de Convenções",
         "price": 450.00,
         "description": "Três dias de imersão no futuro da IA e desenvolvimento web. Palestrantes internacionais e workshops práticos.",
-        "availability": 500
+        "availability": 500,
+        "discountRate": 0.00 // Sem desconto
     },
     {
         "id": "festival-cinema",
@@ -28,7 +29,8 @@ const mockEventsData = [
         "location": "Cine Arte",
         "price": 50.00,
         "description": "Exibição dos melhores curtas e longas-metragens da cena independente nacional. Vote no seu favorito!",
-        "availability": 300
+        "availability": 300,
+        "discountRate": 0.00 // Sem desconto
     },
     {
         "id": "expo-automovel",
@@ -37,29 +39,60 @@ const mockEventsData = [
         "location": "Pavilhão Metropolitano",
         "price": 280.00,
         "description": "Uma vitrine com os carros mais exclusivos e lançamentos de marcas de luxo globais.",
-        "availability": 1000
+        "availability": 1000,
+        "discountRate": 0.00 // Sem desconto
+    },
+    {
+        "id": "show-pericles-natanzinho",
+        "name": "Péricles e Natanzinho Lima - Folk Valley",
+        "date": "20/12/2025",
+        "location": "Arena Folk Valley",
+        "price": 180.00, // Preço original do ingresso
+        "description": "Show imperdível com Péricles e Natanzinho Lima. O melhor do pagode e forró em uma só noite.",
+        "availability": 800,
+        "discountRate": 0.05, // 5% de desconto para o cliente
+        "symplaUrl": "https://www.sympla.com.br/evento/folk-valley-apresenta-pericles-e-natanzinho-lima/3207294" // Link externo
+    },
+    // --- NOVO EVENTO ADICIONADO: Réveillon Sunset Gigóia ---
+    {
+        "id": "reveillon-sunset-gigoia",
+        "name": "Réveillon Sunset Gigóia - RIO",
+        "date": "31/12/2025",
+        "location": "Ilha da Gigóia, Barra da Tijuca",
+        "price": 600.00, 
+        "description": "Festa All Inclusive de Ano Novo na Ilha da Gigóia com vista espetacular e open bar premium.",
+        "availability": 350,
+        "discountRate": 0.05, // 5% de desconto para o cliente
+        "symplaUrl": "https://www.sympla.com.br/evento/reveillon-sunset-gigoia" // Link fictício Sympla para o evento
     }
 ];
 
+// Função auxiliar para calcular o preço com desconto (para exibição)
+const calculateDiscountedPrice = (price, discountRate) => {
+    if (typeof price !== 'number' || price <= 0) return 'R$ --';
+    const finalPrice = price * (1 - (discountRate || 0));
+    return `R$ ${finalPrice.toFixed(2)}`;
+};
+
 // --- COMPONENTE SLIDER (Embutido) ---
 const slidesData = [
+    { 
+        id: "reveillon-sunset-gigoia", // Novo evento como destaque principal
+        title: "5% OFF! Réveillon Sunset Gigóia (ALL INCLUSIVE)", 
+        description: "Compre agora e garanta 5% de desconto exclusivo do Premier Pass para o melhor Ano Novo da Ilha!", 
+        image: "https://placehold.co/1200x450/e91e63/ffffff?text=REVEILLON+RIO+GIGOIA+5%25+OFF" // Cor diferente para destaque
+    },
+    { 
+        id: "show-pericles-natanzinho", 
+        title: "5% OFF! Péricles e Natanzinho Lima (Exclusivo)", 
+        description: "Compre agora e garanta 5% de desconto exclusivo do Premier Pass!", 
+        image: "https://placehold.co/1200x450/4527a0/ffffff?text=PERICLES+%26+NATANZINHO+5%25+OFF" 
+    },
     { 
         id: "show-banda-a", 
         title: "Lançamento Exclusivo: O Novo Filósofo do Rock", 
         description: "Única apresentação na capital. Compre seu ingresso VIP antes que acabe!", 
         image: "https://placehold.co/1200x450/00bcd4/ffffff?text=Show+Exclusivo+DESTAQUE+1" 
-    },
-    { 
-        id: "congresso-tech-2026",
-        title: "Mega Festival de Verão: Sunburst 2025", 
-        description: "Três dias de música, arte e gastronomia com os maiores DJs do mundo.", 
-        image: "https://placehold.co/1200x450/536dfe/ffffff?text=Festival+DESTAQUE+2" 
-    },
-    { 
-        id: "festival-cinema",
-        title: "Peça Clássica: A Dama das Camélias", 
-        description: "Releitura moderna do romance atemporal. Uma experiência imperdível.", 
-        image: "https://placehold.co/1200x450/4caf50/ffffff?text=Teatro+DESTAQUE+3" 
     },
 ];
 
@@ -122,12 +155,8 @@ const Slider = () => {
 export default function Home() {
   const [events, setEvents] = useState([]);
 
-  // Fetch data CORRIGIDO: Agora usa os dados embutidos (mockEventsData)
   useEffect(() => {
-    // Simula o carregamento instantâneo do JSON
     setEvents(mockEventsData); 
-    
-    // Antiga lógica removida (fetch('/events.json')...)
   }, []);
 
   return (
@@ -157,7 +186,15 @@ export default function Home() {
             events.map(event => (
                 <a key={event.id} href={`/eventos/${event.id}`} className="eventCard">
                 <h3>{event.name} &rarr;</h3>
-                <p>{event.date} - {event.location}</p>
+                {/* Exibindo o preço já com o desconto aplicado (se houver) */}
+                <p>
+                    {event.date} - {event.location}
+                    <br />
+                    <span className={event.discountRate > 0 ? 'price-discounted' : 'price-full'}>
+                        {calculateDiscountedPrice(event.price, event.discountRate)}
+                    </span>
+                    {event.discountRate > 0 && <span className="discount-tag">5% OFF!</span>}
+                </p>
                 </a>
             ))
           ) : (
@@ -353,6 +390,25 @@ export default function Home() {
             margin: 0 0 0.5rem 0;
             font-size: 1.25rem;
             color: var(--accent-color);
+        }
+
+        /* Estilos de Preço */
+        .price-discounted {
+            font-weight: 700;
+            color: #4CAF50; /* Verde de desconto */
+            margin-right: 10px;
+        }
+        .price-full {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .discount-tag {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #E91E63; /* Cor vibrante para o desconto */
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         .footer {
