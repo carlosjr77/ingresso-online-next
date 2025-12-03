@@ -1,11 +1,6 @@
 {
   "/_app": "pages/_app.js",
-  "/admin": "pages/admin.js",
   "/_error": "pages/_error.js",
-  "/api/events": "pages/api/events.js",
-  "/checkout/[id]": "pages/checkout/[id].js",
-  "/eventos/[id]": "pages/eventos/[id].js",
-  "/pages/checkout": "pages/pages/checkout.js",
-  "/": "pages/index.js",
-  "/_document": "pages/_document.js"
+  "/_document": "pages/_document.js",
+  "/": "pages/index.js"
 }

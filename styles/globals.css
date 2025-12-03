@@ -1,37 +1,292 @@
-/* styles/globals.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800&display=swap');
 
-/* --- VARIÁVEIS GLOBAIS DE TEMA ESCURO --- */
 :root {
-    --bg-color: #121212;
+    --accent-color: #00bcd4;
     --text-color: #e0e0e0;
-    --accent-color: #00bcd4; /* Ciano/Azul Destaque */
-    --accent-secondary: #5c6bc0; /* Roxo/Azul Secundário */
+    --background-dark: rgba(0, 0, 0, 0.7);
+    --bg-color: #121212;
     --card-bg: #1f1f1f;
     --border-color: #333;
-    --footer-text: #777;
 }
 
-/* Reset Básico */
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    /* Usando 'Inter' conforme definido em _app.js */
-    font-family: 'Inter', sans-serif; 
     background-color: var(--bg-color);
     color: var(--text-color);
-    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
 }
 
-a {
+/* Hero e Layout */
+.mainContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem 4rem 1rem;
+    min-height: 100vh;
+}
+
+.heroSection {
+    text-align: center;
+    padding: 4rem 1rem 2rem 1rem;
+    color: var(--text-color);
+}
+
+.title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #00bcd4, #5c6bc0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    opacity: 0.85;
+}
+
+/* Slider Styles */
+.sliderContainer {
+    width: 100%;
+    max-width: 1200px;
+    height: 350px;
+    margin: -2rem auto 2rem auto;
+    overflow: hidden;
+    position: relative;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+}
+
+.slide {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 0.7s ease-in-out;
+    background-size: cover;
+    background-position: center;
+}
+
+.slide.active {
+    opacity: 1;
+    z-index: 10;
+}
+
+.slideOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.slideContent {
+    position: relative;
+    z-index: 20;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+}
+
+.slideTitleTop {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 700;
+}
+
+.slideMainText p {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+    max-width: 800px;
+    line-height: 1.2;
+}
+
+.navButtonAction {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--accent-color);
+    color: #fff;
     text-decoration: none;
-    color: inherit;
-    transition: color 0.3s;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+    transition: transform 0.2s;
 }
 
-ul {
-    list-style: none;
+.navButtonAction:hover {
+    transform: scale(1.05);
+}
+
+.navButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    border: none;
+    padding: 1rem;
+    cursor: pointer;
+    z-index: 30;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    margin: 0 10px;
+}
+
+.navButton:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.dotsContainer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 40;
+}
+
+.dot {
+    height: 10px;
+    width: 10px;
+    margin: 0 6px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.dot.active {
+    background-color: var(--accent-color);
+    transform: scale(1.3);
+}
+
+/* Grid de Eventos */
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding-top: 1rem;
+}
+
+.eventCard {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    display: block;
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.eventCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border-color: var(--accent-color);
+}
+
+.eventCard h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: var(--accent-color);
+}
+
+/* Estilos de Preço */
+.priceContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.priceDiscounted {
+    font-weight: 700;
+    color: #4CAF50;
+}
+
+.priceFull {
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.priceOriginal {
+    text-decoration: line-through;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.discountTag {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #E91E63;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.footer {
+    padding: 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    margin-top: 2rem;
+    color: #777;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2.5rem;
+    }
+
+    .sliderContainer {
+        height: 300px;
+        margin: -1.5rem auto 1.5rem auto;
+    }
+
+    .navButton {
+        display: none;
+    }
+
+    .slideMainText p {
+        font-size: 1.5rem;
+    }
 }
