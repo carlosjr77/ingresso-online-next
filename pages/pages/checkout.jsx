@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import styles from '../../styles/Detalhes.module.css'; // Reaproveita o estilo dos detalhes
-
-// --- MÓDULOS FIREBASE EMBUTIDOS ---
+// Importações de módulos Firebase (serão usadas pelas funções embutidas)
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { 
@@ -24,7 +22,7 @@ let currentUserId = null; // Variável para armazenar o ID do usuário autentica
 
 /**
  * Realiza a autenticação do usuário e define o ID do usuário (userId).
- * Recebe o setAuthReady setter para atualizar o estado do componente.
+ * Recebe o setAuthReady para atualizar o estado do componente.
  */
 async function authenticateUser(setAuthReady) {
     try {
@@ -45,6 +43,7 @@ async function authenticateUser(setAuthReady) {
 
 /**
  * Salva a intenção de pedido do cliente no Firestore.
+ * Usa o currentUserId definido em authenticateUser().
  */
 async function saveOrderIntention(orderData) {
     if (!currentUserId) {
@@ -69,87 +68,35 @@ async function saveOrderIntention(orderData) {
         return null;
     }
 }
-// --- FIM DOS MÓDULOS FIREBASE EMBUTIDOS ---
 
+// Usando a função para obter o ID da URL de forma nativa
+const useQueryId = () => {
+    const [queryId, setQueryId] = useState(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            setQueryId(params.get('id'));
+        }
+    }, []);
+    return queryId;
+};
 
 // --- DADOS MOCKADOS (Para garantir que funcione sem API por enquanto) ---
 const mockEventsData = [
-    {
-        "id": "show-banda-a",
-        "name": "Show de Lançamento - Banda A",
-        "date": "15/12/2025",
-        "location": "Arena Principal",
-        "price": 120.00,
-        "symplaUrl": "https://www.sympla.com.br/evento/show-banda-a/simulacao"
-    },
-    {
-        "id": "congresso-tech-2026",
-        "name": "Congresso de Tecnologia 2026",
-        "date": "20/01/2026",
-        "location": "Centro de Convenções",
-        "price": 450.00,
-        "symplaUrl": "https://www.sympla.com.br/evento/congresso-tech/simulacao"
-    },
-    {
-        "id": "festival-cinema",
-        "name": "Festival de Cinema Independente",
-        "date": "05/03/2026",
-        "location": "Cine Arte",
-        "price": 50.00,
-        "symplaUrl": "https://www.sympla.com.br/evento/festival-cinema/simulacao"
-    },
-    {
-        "id": "expo-automovel",
-        "name": "Expo Automóvel Luxo",
-        "date": "10/04/2026",
-        "location": "Pavilhão Metropolitano",
-        "price": 280.00,
-        "symplaUrl": "https://www.sympla.com.br/evento/expo-automovel/simulacao"
-    },
-    {
-        "id": "show-pericles-natanzinho",
-        "name": "Péricles e Natanzinho Lima - Folk Valley",
-        "date": "20/12/2025",
-        "location": "Arena Folk Valley",
-        "price": 180.00,
-        "symplaUrl": "https://www.sympla.com.br/evento/folk-valley-apresenta-pericles-e-natanzinho-lima/3207294"
-    },
-    {
-        "id": "reveillon-sunset-gigoia",
-        "name": "Réveillon Sunset Gigóia - RIO",
-        "date": "31/12/2025",
-        "location": "Ilha da Gigóia, Barra da Tijuca",
-        "price": 600.00, 
-        "symplaUrl": "https://www.sympla.com.br/evento/reveillon-sunset-gigoia"
-    },
-    {
-        "id": "reveillon-celebrare-2026",
-        "name": "Réveillon Celebrare 2026 - RIO",
-        "date": "31/12/2025",
-        "location": "Clube Monte Líbano, Lagoa",
-        "price": 750.00, 
-        "symplaUrl": "https://www.sympla.com.br/evento/reveillon-celebrare-2026"
-    },
-    {
-        "id": "love-sessions-2025",
-        "name": "Love Sessions Festival 2025",
-        "date": "20/12/2025",
-        "location": "Riocentro, Rio de Janeiro",
-        "price": 150.00, 
-        "symplaUrl": "https://www.sympla.com.br/evento/love-sessions-festival-2025-rio-de-janeiro/1234567"
-    }
+    { "id": "show-banda-a", "name": "Show de Lançamento - Banda A", "price": 120.00, "symplaUrl": "https://www.sympla.com.br/evento/show-banda-a/simulacao" },
+    { "id": "congresso-tech-2026", "name": "Congresso de Tecnologia 2026", "price": 450.00, "symplaUrl": "https://www.sympla.com.br/evento/congresso-tech/simulacao" },
+    { "id": "festival-cinema", "name": "Festival de Cinema Independente", "price": 50.00, "symplaUrl": "https://www.sympla.com.br/evento/festival-cinema/simulacao" },
+    { "id": "expo-automovel", "name": "Expo Automóvel Luxo", "price": 280.00, "symplaUrl": "https://www.sympla.com.br/evento/expo-automovel/simulacao" },
+    { "id": "show-pericles-natanzinho", "name": "Péricles e Natanzinho Lima - Folk Valley", "price": 180.00, "symplaUrl": "https://www.sympla.com.br/evento/folk-valley-apresenta-pericles-e-natanzinho-lima/3207294" },
+    { "id": "reveillon-sunset-gigoia", "name": "Réveillon Sunset Gigóia - RIO", "price": 600.00, "symplaUrl": "https://www.sympla.com.br/evento/reveillon-sunset-gigoia" },
+    { "id": "reveillon-celebrare-2026", "name": "Réveillon Celebrare 2026 - RIO", "price": 750.00, "symplaUrl": "https://www.sympla.com.br/evento/reveillon-celebrare-2026" },
+    { "id": "love-sessions-2025", "name": "Love Sessions Festival 2025", "price": 150.00, "symplaUrl": "https://www.sympla.com.br/evento/love-sessions-festival-2025-rio-de-janeiro/1234567" }
 ];
 
-// Função para obter o ID diretamente do path (funciona no lado do cliente)
-const getPathId = () => {
-    if (typeof window === 'undefined') return null;
-    const pathSegments = window.location.pathname.split('/');
-    // Assume a estrutura /checkout/[id]
-    return pathSegments[pathSegments.length - 1];
-};
 
 export default function CheckoutPage() {
-  const id = getPathId();
+  const id = useQueryId();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -189,17 +136,17 @@ export default function CheckoutPage() {
   const totalPrice = premierPriceUnit * formData.ticketQuantity;
 
   const handleInputChange = (e) => {
-    // Função para obter o valor correto do input, mesmo em selects
     let value = e.target.value;
     if (e.target.name === 'ticketQuantity') {
-        value = parseInt(value);
+        // Garante que a quantidade seja um número inteiro
+        value = parseInt(value, 10) || 1; 
     }
     setFormData({...formData, [e.target.name]: value});
   };
 
   const handleCheckout = async (e) => {
     e.preventDefault();
-    if (!authReady || processing) return;
+    if (!authReady || processing || !event) return;
 
     setProcessing(true);
 
@@ -226,9 +173,12 @@ export default function CheckoutPage() {
 
       if (orderId) {
         // 2. Feedback visual
-        // Substituindo alert por console.log e mensagem na tela
         console.log(`Sucesso! Pedido salvo no Firebase. ID: ${orderId}`);
-        
+        const feedbackElement = document.getElementById('buyFeedback');
+        if (feedbackElement) {
+             feedbackElement.innerText = "Pedido salvo! Redirecionando para Sympla...";
+        }
+
         // 3. Redirecionar para o link de compra real na Sympla
         if (event.symplaUrl) {
              window.open(event.symplaUrl, '_blank');
@@ -245,13 +195,12 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error("Erro no checkout:", error);
-      // Mensagem customizada de erro no formulário
       const feedbackElement = document.getElementById('buyFeedback');
       if (feedbackElement) {
-          feedbackElement.innerText = "Erro ao processar o pedido. Tente novamente ou verifique sua conexão.";
+          feedbackElement.innerText = "Erro ao processar o pedido. Tente novamente.";
       }
     } finally {
-      // Apenas mantém o processamento por 2 segundos, mesmo se der erro, para dar tempo de ler a mensagem
+      // O processamento volta ao normal após 2 segundos para permitir nova tentativa
       setTimeout(() => setProcessing(false), 2000);
     }
   };
@@ -267,6 +216,14 @@ export default function CheckoutPage() {
 
         {/* Resumo do Pedido */}
         <div className="summaryBox">
+          <div className="summaryItem">
+            <span>Preço do Lote (Sympla):</span>
+            <span>R$ {basePrice.toFixed(2)}</span>
+          </div>
+          <div className="summaryItem">
+            <span>Sua Taxa Premier Pass (5%):</span>
+            <span style={{color: '#ffc107'}}>R$ {(premierPriceUnit - basePrice).toFixed(2)}</span>
+          </div>
           <div className="summaryItem">
             <span>Valor Unitário (Premier):</span>
             <span>R$ {premierPriceUnit.toFixed(2)}</span>
@@ -285,48 +242,28 @@ export default function CheckoutPage() {
         <form onSubmit={handleCheckout} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
           <div className="formGroup">
             <label className="formLabel">Nome Completo</label>
-            <input 
-              type="text" name="name" required 
-              value={formData.name} onChange={handleInputChange}
-              className="formInput"
-            />
+            <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="formInput" />
           </div>
           
           <div className="formGroup">
             <label className="formLabel">E-mail (Para envio do ingresso)</label>
-            <input 
-              type="email" name="email" required 
-              value={formData.email} onChange={handleInputChange}
-              className="formInput"
-            />
+            <input type="email" name="email" required value={formData.email} onChange={handleInputChange} className="formInput" />
           </div>
 
           <div className="formGroup grid2">
              <div className="innerGroup">
                 <label className="formLabel">CPF</label>
-                <input 
-                  type="text" name="cpf" required placeholder="000.000.000-00"
-                  value={formData.cpf} onChange={handleInputChange}
-                  className="formInput"
-                />
+                <input type="text" name="cpf" required placeholder="000.000.000-00" value={formData.cpf} onChange={handleInputChange} className="formInput" />
              </div>
              <div className="innerGroup">
                 <label className="formLabel">Telefone</label>
-                <input 
-                  type="text" name="phone" required placeholder="(XX) 99999-9999"
-                  value={formData.phone} onChange={handleInputChange}
-                  className="formInput"
-                />
+                <input type="text" name="phone" required placeholder="(XX) 99999-9999" value={formData.phone} onChange={handleInputChange} className="formInput" />
              </div>
           </div>
 
           <div className="formGroup">
             <label className="formLabel">Quantidade de Ingressos</label>
-            <select 
-              name="ticketQuantity"
-              value={formData.ticketQuantity} onChange={handleInputChange}
-              className="formSelect"
-            >
+            <select name="ticketQuantity" value={formData.ticketQuantity} onChange={handleInputChange} className="formSelect">
               {[1,2,3,4,5,6].map(num => <option key={num} value={num}>{num}</option>)}
             </select>
           </div>
@@ -424,13 +361,17 @@ export default function CheckoutPage() {
         .formGroup {
             display: flex; 
             flex-direction: column;
-            gap: 15px; /* Espaçamento padrão para grupos */
+            gap: 5px; /* Ajustado para melhor espaçamento do label */
         }
         .grid2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-bottom: 0;
+        }
+        .innerGroup {
+             display: flex; 
+             flex-direction: column;
         }
         .formLabel {
             display: block; 
@@ -448,7 +389,7 @@ export default function CheckoutPage() {
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
         }
         .formSelect {
-            appearance: none; /* Remove seta padrão */
+            appearance: none; 
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23aaa' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.939l-4.243-4.242L4.343 8z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 15px center;
