@@ -1,512 +1,313 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+// Não precisamos mais de useEffect para fetch, o dado vem por props
 
-// --- DADOS MOCKADOS DE EVENTOS (AGORA COM coverImage) ---
-const mockEventsData = [
-    {
-        "id": "show-banda-a",
-        "name": "Show de Lançamento - Banda A",
-        "date": "15/12/2025",
-        "location": "Arena Principal",
-        "price": 120.00,
-        "description": "A turnê de lançamento mais aguardada do ano. Um espetáculo de luz e som com a Banda A.",
-        "availability": 1500,
-        "discountRate": 0.00,
-        "coverImage": "https://placehold.co/400x250/37474F/ffffff?text=LAN%C3%87AMENTO+SHOW" // Placeholder
-    },
-    {
-        "id": "congresso-tech-2026",
-        "name": "Congresso de Tecnologia 2026",
-        "date": "20/01/2026",
-        "location": "Centro de Convenções",
-        "price": 450.00,
-        "description": "Três dias de imersão no futuro da IA e desenvolvimento web. Palestrantes internacionais e workshops práticos.",
-        "availability": 500,
-        "discountRate": 0.00,
-        "coverImage": "https://placehold.co/400x250/26A69A/ffffff?text=TECH+CONGRESSO" // Placeholder
-    },
-    {
-        "id": "festival-cinema",
-        "name": "Festival de Cinema Independente",
-        "date": "05/03/2026",
-        "location": "Cine Arte",
-        "price": 50.00,
-        "description": "Exibição dos melhores curtas e longas-metragens da cena independente nacional. Vote no seu favorito!",
-        "availability": 300,
-        "discountRate": 0.00,
-        "coverImage": "https://placehold.co/400x250/FFB74D/000000?text=FESTIVAL+CINEMA" // Placeholder
-    },
-    {
-        "id": "expo-automovel",
-        "name": "Expo Automóvel Luxo",
-        "date": "10/04/2026",
-        "location": "Pavilhão Metropolitano",
-        "price": 280.00,
-        "description": "Uma vitrine com os carros mais exclusivos e lançamentos de marcas de luxo globais.",
-        "availability": 1000,
-        "discountRate": 0.00,
-        "coverImage": "https://placehold.co/400x250/C0CA33/000000?text=EXPO+AUTOM%C3%93VEL" // Placeholder
-    },
-    {
-        "id": "show-pericles-natanzinho",
-        "name": "Péricles e Natanzinho Lima - Folk Valley",
-        "date": "20/12/2025",
-        "location": "Arena Folk Valley",
-        "price": 180.00,
-        "description": "Show imperdível com Péricles e Natanzinho Lima. O melhor do pagode e forró em uma só noite.",
-        "availability": 800,
-        "discountRate": 0.05,
-        "symplaUrl": "https://www.sympla.com.br/evento/folk-valley-apresenta-pericles-e-natanzinho-lima/3207294",
-        "coverImage": "/image_28d63f.jpg" // Imagem real confirmada
-    },
-    {
-        "id": "reveillon-sunset-gigoia",
-        "name": "Réveillon Sunset Gigóia - RIO",
-        "date": "31/12/2025",
-        "location": "Ilha da Gigóia, Barra da Tijuca",
-        "price": 600.00, 
-        "description": "Festa All Inclusive de Ano Novo na Ilha da Gigóia com vista espetacular e open bar premium.",
-        "availability": 350,
-        "discountRate": 0.05,
-        "symplaUrl": "https://www.sympla.com.br/evento/reveillon-sunset-gigoia",
-        "coverImage": "/image_28dd9c.jpg" // Imagem real confirmada
-    },
-    {
-        "id": "reveillon-celebrare-2026",
-        "name": "Réveillon Celebrare 2026 - RIO",
-        "date": "31/12/2025",
-        "location": "Clube Monte Líbano, Lagoa",
-        "price": 750.00, 
-        "description": "Um dos mais tradicionais Réveillons do Rio, no Clube Monte Líbano, com Open Bar e Buffet de alta gastronomia.",
-        "availability": 1200,
-        "discountRate": 0.05, 
-        "symplaUrl": "https://www.sympla.com.br/evento/reveillon-celebrare-2026",
-        "coverImage": "/image_28da38.jpg" // Imagem real confirmada
-    },
-    {
-        "id": "love-sessions-2025",
-        "name": "Love Sessions Festival 2025",
-        "date": "20/12/2025",
-        "location": "Riocentro, Rio de Janeiro",
-        "price": 150.00, 
-        "description": "Festival de música eletrônica com os maiores DJs da cena nacional e internacional. Garanta já!",
-        "availability": 2500,
-        "discountRate": 0.05, 
-        "symplaUrl": "https://www.sympla.com.br/evento/love-sessions-festival-2025-rio-de-janeiro/1234567",
-        "coverImage": "/image_287fc4.jpg" // Imagem real confirmada
-    }
-];
+// --- LÓGICA DE SERVIDOR: BUSCA EVENTOS, APLICA LUCRO E RETORNA ---
+export async function getServerSideProps() {
+    // Pegamos a chave segura do ambiente (disponível no Vercel)
+    const apiKey = process.env.SYMPLA_API_KEY;
+    const profitMargin = 0.05; // 5% de lucro
+    let eventsWithMarkup = [];
+    let fetchError = null;
 
-// Função auxiliar para calcular o preço com +5% (Margem Premier)
-const calculatePremierPrice = (price) => {
-    if (typeof price !== 'number' || price <= 0) return 'R$ --';
-    // No grid da Home, mostraremos o preço com a margem de 5% que o cliente pagará
-    const finalPrice = price * 1.05; 
-    return `R$ ${finalPrice.toFixed(2)}`;
-};
+    try {
+        if (!apiKey) {
+            throw new Error('SYMPLA_API_KEY está ausente. Usando dados MOCKADOS.');
+        }
 
-// --- COMPONENTE SLIDER ---
-const slidesData = [
-    // Usando apenas os dados que temos imagens reais para o slider
-    { 
-        id: "reveillon-sunset-gigoia", 
-        title: "ALL INCLUSIVE - PREMIUM",  
-        description: "Réveillon Sunset Gigóia: O melhor Ano Novo da Ilha espera por você!", 
-        image: "/image_28dd9c.jpg" 
-    },
-    { 
-        id: "love-sessions-2025", 
-        title: "GARANTA JÁ ANTES QUE O LOTE VIRE!", 
-        description: "Love Sessions Festival: O maior evento de eletrônica do RJ!", 
-        image: "/image_287fc4.jpg" 
-    },
-    { 
-        id: "reveillon-celebrare-2026", 
-        title: "TRADICIONAL ZONA SUL", 
-        description: "Réveillon Celebrare: Open Bar e Buffet de alta gastronomia.", 
-        image: "/image_28da38.jpg" 
-    },
-];
-
-const Slider = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-
-    const navigate = (direction) => {
-        const totalSlides = slidesData.length;
-        setCurrentSlide(prev => {
-            if (direction === 'next') {
-                return (prev + 1) % totalSlides;
-            } else {
-                return (prev - 1 + totalSlides) % totalSlides;
+        // 1. Conexão com a Sympla Real
+        const response = await fetch('https://api.sympla.com.br/public/v3/events', {
+            headers: {
+                's_token': apiKey,
+                'Content-Type': 'application/json'
             }
         });
+
+        if (!response.ok) {
+            throw new Error(`Erro na Sympla: ${response.status}`);
+        }
+
+        const data = await response.json();
+        let events = data.data || [];
+
+        // 2. Fallback de dados MOCKADOS (se a Sympla não retornar nada ou falhar)
+        if (events.length === 0) {
+            events = [
+                { id: 1, name: "Réveillon Celebrare 2026", start_date: "31/12/2025", address: { name: "Clube Monte Líbano, RJ" }, image: "https://placehold.co/600x400/9c27b0/ffffff?text=Celebrare", original_price: 750.00 },
+                { id: 2, name: "Péricles e Natanzinho Lima", start_date: "20/12/2025", address: { name: "Arena Folk Valley" }, image: "https://placehold.co/600x400/4527a0/ffffff?text=Show", original_price: 180.00 }
+            ];
+            // Marcamos para saber que é mockado, se necessário
+            events = events.map(e => ({...e, isMock: true})); 
+        }
+
+        // 3. Aplicação da Margem de Lucro
+        eventsWithMarkup = events.map(event => {
+            const basePrice = event.original_price || 100.00; 
+            const sellingPrice = basePrice * (1 + profitMargin); 
+
+            return {
+                id: event.id,
+                name: event.name || event.name_event,
+                date: event.start_date,
+                location: event.address ? event.address.name : 'Local a definir',
+                price: parseFloat(sellingPrice.toFixed(2)), 
+                // Link para checkout interno que salva o lead
+                checkoutUrl: `/checkout/${event.id}` 
+            };
+        });
+
+    } catch (error) {
+        console.error("Erro FATAL no servidor (getServerSideProps):", error.message);
+        fetchError = error.message;
+
+        // Se falhar, carregamos apenas os mocks para evitar um erro 500 no Vercel
+        eventsWithMarkup = [
+            { id: "show-banda-a", name: "Show de Lançamento - Banda A", date: "15/12/2025", location: "Arena Principal", price: 126.00, checkoutUrl: "/checkout/show-banda-a" },
+            { id: "congresso-tech-2026", name: "Congresso de Tecnologia 2026", date: "20/01/2026", location: "Centro de Convenções", price: 472.50, checkoutUrl: "/checkout/congresso-tech-2026" }
+        ];
+    }
+
+    // Retorna os dados para o componente Home como props
+    return {
+        props: {
+            events: eventsWithMarkup,
+            error: fetchError
+        },
     };
+}
+// --- FIM DA LÓGICA DE SERVIDOR ---
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            navigate('next');
-        }, 5000);
-        return () => clearInterval(timer);
-    }, []);
 
-    return (
-        <div className="sliderContainer">
-            {slidesData.map((slide, index) => (
-                <div 
-                    key={slide.id} 
-                    className={`slide ${index === currentSlide ? 'active' : ''}`}
-                    style={{ backgroundImage: `url(${slide.image})` }}
-                >
-                    {/* Overlay escuro para melhorar leitura do texto */}
-                    <div className="slideOverlay"></div>
-
-                    <div className="slideContent">
-                        {/* A de Fora (Etiqueta) */}
-                        <h2 className="slideTitleTop">{slide.title}</h2>
-                        
-                        {/* A de Dentro (Descrição Principal) */}
-                        <div className="slideMainText">
-                            <p>{slide.description}</p>
-                            <a href={`/eventos/${slide.id}`} className="navButtonAction">
-                                Ver Detalhes &rarr;
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            ))}
-
-            <button className="navButton prev" onClick={() => navigate('prev')}>&lt;</button>
-            <button className="navButton next" onClick={() => navigate('next')}>&gt;</button>
-
-            <div className="dotsContainer">
-                {slidesData.map((_, index) => (
-                    <span 
-                        key={index}
-                        className={`dot ${index === currentSlide ? 'active' : ''}`}
-                        onClick={() => setCurrentSlide(index)}
-                    />
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// --- NOVO COMPONENTE EVENTCARD CONSOLIDADO ---
-// Foi movido para dentro deste arquivo para resolver o erro de compilação/caminho.
-const EventCard = ({ event, calculatePremierPrice }) => {
-    // Adiciona verificação de segurança contra eventos undefined/null durante o carregamento
-    if (!event) return null; 
+export default function Home({ events = [], error }) { // CORREÇÃO AQUI: events agora tem valor padrão []
+  
+  // --- CSS do Painel de Administração como string para evitar warnings ---
+  const homeStyles = `
+    /* Cores Base (Assumindo um tema escuro) */
+    :root {
+        --accent-color: #00bcd4; /* Azul ciano */
+        --text-color: #e0e0e0; /* Texto claro */
+        --background-color: #121212; /* Fundo muito escuro */
+        --card-bg: #1f1f1f; /* Fundo do Card */
+        --success-color: #4CAF50; /* Verde para Preço */
+    }
     
-    // URL da imagem, com fallback para placeholder se não houver capa
-    const imageUrl = event.coverImage || 'https://placehold.co/400x250/1f1f1f/ffffff?text=SEM+IMAGEM';
+    /* Reset Básico (ajustado para ser local e global) */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-    // Calcula o preço formatado (função passada via prop do index.jsx)
-    const priceText = calculatePremierPrice(event.price);
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+    }
 
-    return (
-        <a href={`/eventos/${event.id}`} className="eventCard">
-            {/* Seção da Imagem de Capa */}
-            <div className="cardImageContainer">
-                <img 
-                    src={imageUrl} 
-                    alt={`Capa do evento ${event.name}`} 
-                    className="cardImage"
-                    // Fallback em caso de erro no carregamento da URL
-                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x250/4A4A4A/ffffff?text=ERRO+IMAGEM'; }}
-                />
-            </div>
-            
-            {/* Seção do Conteúdo e Informações */}
-            <div className="cardContent">
-                <h3 className="cardTitle">{event.name} &rarr;</h3>
-                <p className="cardDetails">
-                    {event.date} • {event.location}
-                </p>
-                <p className="cardPriceSection">
-                    <span className="price-tag">{priceText}</span>
-                    <span className="discount-tag">PREMIER PASS</span>
-                </p>
-            </div>
-        </a>
-    );
-};
-// --- FIM DO NOVO COMPONENTE EVENTCARD CONSOLIDADO ---
+    /* -------------------------------------------------------------------------- */
+    /* Estilos da Página Home (index.module.css mesclado) */
+    /* -------------------------------------------------------------------------- */
+    
+    /* Main Container: Combina a largura do index.module.css e o background */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem 4rem 1rem; 
+        min-height: 100vh;
+    }
 
+    /* Hero Section */
+    .heroSection {
+        text-align: center;
+        padding: 6rem 1rem 4rem 1rem;
+        color: var(--accent-color); 
+    }
 
-// --- COMPONENTE HOME PRINCIPAL ---
-export default function Home() {
-  const [events, setEvents] = useState([]);
+    .title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(90deg, var(--accent-color), #5c6bc0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-  useEffect(() => {
-    // Agora os dados mockados incluem a imagem de capa
-    setEvents(mockEventsData); 
-  }, []);
+    .description { /* Mapeia para o .subtitle original do CSS Module */
+        font-size: 1.5rem;
+        font-weight: 300;
+        color: var(--text-color);
+        margin-bottom: 3rem;
+        opacity: 0.85;
+    }
+
+    /* Cards Grid */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        padding-top: 2rem;
+    }
+    
+    /* Card Style */
+    .card {
+        display: block;
+        padding: 1.5rem;
+        text-align: left;
+        color: inherit;
+        text-decoration: none;
+        border: 1px solid #333;
+        border-radius: 10px;
+        transition: color 0.15s ease, border-color 0.15s ease;
+        background-color: var(--card-bg);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .card:hover, .card:focus, .card:active {
+        border-color: var(--accent-color);
+        box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+    }
+
+    .card h3 {
+        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+        color: var(--accent-color); 
+    }
+
+    .card p {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #aaa;
+    }
+
+    /* Price Tag e Feedback */
+    .priceTag {
+        font-weight: bold;
+        color: var(--success-color); 
+        margin-top: 10px;
+    }
+    .noEventsMessage {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-color);
+        border: 1px dashed #555;
+        border-radius: 8px;
+        margin-top: 50px;
+    }
+    .noEventsMessage p {
+        margin-bottom: 20px;
+    }
+
+    /* Footer Style */
+    .footer {
+        width: 100%;
+        height: 100px;
+        border-top: 1px solid #222;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #555;
+        font-size: 0.8rem;
+        margin-top: 40px;
+    }
+
+    /* Spinner (para loading) */
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid var(--accent-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .heroSection {
+            padding: 4rem 1rem 2rem 1rem;
+        }
+        .title {
+            font-size: 2.5rem;
+        }
+        .description {
+            font-size: 1.25rem;
+        }
+        .container {
+            padding-bottom: 2rem;
+        }
+    }
+  `;
+
+  // Função para formatar o preço em Reais (com a margem de lucro já incluída)
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(value);
+  };
+  
+  // Componente Head removido, usando tags HTML simples
+  const HeadContent = (
+    <>
+      <title>Ingresso Online - Home</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="icon" href="/favicon.ico" />
+    </>
+  );
 
   return (
-    <div className="mainContainer">
-      {/* Head simulado */}
-      <div style={{display: 'none'}}>
-        <title>Ingresso Online - Home</title>
-      </div>
+    <div className="container">
+      {HeadContent} 
 
-      <main>
-        {/* Seção Hero com Título */}
-        <section className="heroSection">
+      <main className="main">
+        <div className="heroSection">
             <h1 className="title">
-            Bem-vindo ao Ingresso Online!
+                Bem-vindo ao Ingresso Online!
             </h1>
-            <p className="subtitle">
-            Descubra e compre ingressos para os melhores eventos.
-            </p>
-        </section>
 
-        {/* Slider de Destaques */}
-        <Slider />
-
-        {/* Grid de Eventos - Usando o novo componente EventCard */}
-        <div className="cardsGrid">
-          {Array.isArray(events) && events.length > 0 ? (
-            events.map(event => (
-                <EventCard 
-                    key={event.id}
-                    event={event} 
-                    calculatePremierPrice={calculatePremierPrice}
-                />
-            ))
-          ) : (
-            <p style={{textAlign: 'center', width: '100%', color: '#aaa'}}>
-                Nenhum evento encontrado no momento.
+            <p className="description">
+                Compre ingressos para os melhores eventos.
             </p>
-          )}
         </div>
+        
+        {events.length === 0 ? (
+            <div className="noEventsMessage">
+                {error && <p style={{color: '#ff5555', fontWeight: 'bold'}}>Erro de Servidor: {error}</p>}
+                <p>Nenhum evento encontrado no momento. Verifique a configuração da Sympla API Key no Vercel.</p>
+                <div className="spinner"></div>
+            </div>
+        ) : (
+            <div className="grid">
+              {events.map(event => (
+                // O link agora aponta para o checkoutUrl fornecido pela API
+                <a key={event.id} href={event.checkoutUrl} className="card">
+                  <h3>{event.name} &rarr;</h3>
+                  <p>{event.date} - {event.location}</p>
+                  {/* Garantimos que event.price exista antes de tentar formatar */}
+                  {event.price && <p className="priceTag">A partir de: {formatCurrency(event.price)}</p>}
+                </a>
+              ))}
+            </div>
+        )}
       </main>
 
       <footer className="footer">
-        <a href="#" target="_blank" rel="noopener noreferrer">
-          Powered by{' '}
-          <span className="logo">
-             Ingresso Online
-          </span>
+        <a
+          href="https://vercel.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Powered by Vercel
         </a>
       </footer>
 
-      {/* --- ESTILOS CSS CONSOLIDADOS (incluindo EventCard styles) --- */}
-      <style>{`
-        :root {
-            --accent-color: #00bcd4;
-            --text-color: #e0e0e0;
-            --background-dark: rgba(0, 0, 0, 0.7);
-            --bg-color: #121212;
-            --card-bg: #1f1f1f;
-            --border-color: #333;
-            --card-image-height: 140px; /* Altura da imagem do card no grid */
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-        }
-
-        /* Hero e Layout */
-        .mainContainer {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem 4rem 1rem;
-            min-height: 100vh;
-        }
-
-        .heroSection {
-            text-align: center;
-            padding: 4rem 1rem 2rem 1rem;
-            color: var(--text-color);
-        }
-
-        .title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(90deg, #00bcd4, #5c6bc0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        .subtitle {
-            font-size: 1.5rem;
-            font-weight: 300;
-            color: var(--text-color);
-            margin-bottom: 2rem;
-            opacity: 0.85;
-        }
-
-        /* SLIDER - Styles */
-        .sliderContainer {
-            width: 100%; max-width: 1200px; 
-            height: 350px; margin: -2rem auto 2rem auto;
-            overflow: hidden; position: relative;
-            border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            z-index: 5;
-        }
-        .slide {
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-            opacity: 0; transition: opacity 0.7s ease-in-out; 
-            background-size: cover; background-position: center;
-        }
-        .slide.active { opacity: 1; z-index: 10; }
-        .slideOverlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0) 80%);
-            z-index: 1;
-        }
-        .slideContent {
-            position: relative; z-index: 20; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            justify-content: flex-start; align-items: flex-start;
-            text-align: left; padding: 30px;
-        }
-        .slideTitleTop {
-            position: relative; margin: 0 0 5px 0; font-size: 0.8rem;
-            text-transform: uppercase; letter-spacing: 2px;
-            color: var(--accent-color); text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            font-weight: 700;
-        }
-        .slideMainText { display: flex; flex-direction: column; align-items: flex-start; }
-        .slideMainText p {
-            font-size: 0.85rem; font-weight: 600; color: #fff;
-            margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            max-width: 400px; line-height: 1.4;
-        }
-        .navButtonAction {
-            display: inline-block; padding: 8px 16px; background: var(--accent-color);
-            color: #fff; text-decoration: none; border-radius: 50px;
-            font-size: 0.8rem; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4); transition: transform 0.2s;
-        }
-        .navButtonAction:hover { transform: scale(1.05); }
-        .navButton {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.3); color: #fff; border: none; padding: 1rem; 
-            cursor: pointer; z-index: 30; font-size: 1.5rem; 
-            border-radius: 50%; margin: 0 10px;
-        }
-        .navButton:hover { background: rgba(0,0,0,0.6); }
-        .dotsContainer {
-            position: absolute; bottom: 20px; width: 100%;
-            display: flex; justify-content: center; z-index: 40;
-        }
-        .dot {
-            height: 10px; width: 10px; margin: 0 6px;
-            background-color: rgba(255,255,255,0.4);
-            border-radius: 50%; cursor: pointer;
-        }
-        .dot.active { background-color: var(--accent-color); transform: scale(1.3); }
-
-        /* Grid de Eventos - Container */
-        .cardsGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            padding-top: 1rem;
-        }
-
-        /* --- STYLES DO EVENTCARD (MOVIMENTOS PARA AQUI) --- */
-        .eventCard {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--card-bg);
-            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
-            display: flex;
-            flex-direction: column;
-            text-decoration: none;
-            color: var(--text-color);
-            overflow: hidden; 
-        }
-
-        .eventCard:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            border-color: var(--accent-color);
-        }
-
-        .cardImageContainer {
-            width: 100%;
-            height: var(--card-image-height);
-            overflow: hidden;
-        }
-
-        .cardImage {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s ease;
-        }
-
-        .eventCard:hover .cardImage {
-            transform: scale(1.05);
-        }
-
-        .cardContent {
-            padding: 1.5rem;
-        }
-
-        .cardTitle {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.25rem;
-            color: var(--accent-color);
-            line-height: 1.2;
-        }
-
-        .cardDetails {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-bottom: 1rem;
-        }
-
-        .cardPriceSection {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .price-tag {
-            font-weight: 700;
-            color: #4CAF50;
-            font-size: 1.1rem;
-        }
-
-        .discount-tag {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: var(--accent-color);
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-        /* --- FIM DOS STYLES DO EVENTCARD --- */
-
-
-        .footer {
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            margin-top: 2rem;
-            color: #777;
-        }
-        
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .title { font-size: 2.5rem; }
-            .sliderContainer { height: 300px; margin: -1.5rem auto 1.5rem auto; }
-            .navButton { display: none; }
-            .slideContent { padding: 20px; }
-            .slideTitleTop { font-size: 0.7rem; }
-            .slideMainText p { font-size: 0.75rem; max-width: 80%; }
-        }
-      `}</style>
+      {/* CORREÇÃO: Usando dangerouslySetInnerHTML para injetar o CSS. */}
+      <style dangerouslySetInnerHTML={{ __html: homeStyles }} />
     </div>
   );
 }
