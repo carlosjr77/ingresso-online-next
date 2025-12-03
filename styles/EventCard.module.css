@@ -1,0 +1,68 @@
+/* styles/EventCard.module.css */
+
+.eventCardHighlight {
+    position: relative;
+    min-width: 400px;
+    height: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+
+.eventCardHighlight img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.eventCardHighlight:hover img {
+    transform: scale(1.05);
+}
+
+.cardInfoOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    color: #fff;
+    padding: 20px;
+}
+
+.cardInfoOverlay h3 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.cardInfoOverlay p {
+    font-size: 0.9rem;
+}
+
+.cardInfoOverlay span {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ff5722;
+}
+
+/* Estilo para cards na grid */
+.eventCardGrid {
+    position: relative;
+    height: 250px; 
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+.eventCardGrid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+.eventCardGrid:hover img {
+    transform: scale(1.05);
+}

@@ -1,0 +1,16 @@
+{
+    // Use IntelliSense para aprender sobre possíveis atributos.
+    // Hover para ver descrições dos atributos existentes.
+    // Para mais informações, visite: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome against Next.js (Porta 3000)",
+            // A porta padrão para Next.js é 3000. Ajuste se o seu servidor usa outra porta.
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}

@@ -1,0 +1,115 @@
+/*
+ * Este arquivo deve conter APENAS classes CSS locais que serão usadas 
+ * em componentes ou na sua página index.jsx. 
+ * Estilos globais (html, body, :root) devem estar em globals.css.
+ */
+
+.mainContainer {
+    /* Centraliza o conteúdo principal e garante que ele não seja muito largo */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem 4rem 1rem; /* Adiciona padding para margem de segurança */
+    min-height: 100vh;
+}
+
+/* Estilos para a seção Hero */
+.heroSection {
+    text-align: center;
+    padding: 6rem 1rem 4rem 1rem;
+    color: var(--text-color); 
+}
+
+.title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    /* Efeito de gradiente no título, alinhado ao tema escuro */
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+    
+    /* Propriedades para recortar o fundo no formato do texto */
+    -webkit-background-clip: text;
+    background-clip: text; /* Propriedade padrão para compatibilidade */
+    
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* Fallback para navegadores que suportam background-clip padrão */
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text-color);
+    margin-bottom: 3rem;
+    opacity: 0.85;
+}
+
+/* Estilos para a listagem de eventos */
+.sectionTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-color);
+    padding-top: 1rem;
+}
+
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.eventCard {
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    display: block;
+}
+
+.eventCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    border-color: var(--accent-color);
+}
+
+.eventCard h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: var(--accent-color);
+}
+
+.eventCard p {
+    margin: 0;
+    color: #a0a0a0;
+}
+
+/* Estilos do Footer */
+.footer {
+    padding: 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    margin-top: 2rem;
+    color: var(--footer-text);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .heroSection {
+        padding: 4rem 1rem 3rem 1rem;
+    }
+    .title {
+        font-size: 2.5rem;
+    }
+    .subtitle {
+        font-size: 1.2rem;
+    }
+    .sectionTitle {
+        font-size: 1.5rem;
+    }
+    .cardsGrid {
+        gap: 1.5rem;
+        padding: 0;
+    }
+}

@@ -1,0 +1,183 @@
+/* Estilos aprimorados para o componente Slider.jsx */
+
+:root {
+    --accent-color: #00bcd4; /* Azul ciano para destaque */
+    --text-color-light: #ffffff;
+    --background-dark: rgba(0, 0, 0, 0.7);
+}
+
+.sliderContainer {
+    width: 100%;
+    max-width: 1200px; 
+    height: 250px; 
+    /* Ajuste Crítico: Margem negativa superior (-3rem) 
+       Isso "puxa" o slider para cima, reduzindo o espaço em branco em 50% 
+    */
+    margin: -3rem auto 2rem auto; 
+    overflow: hidden;
+    position: relative;
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 5; /* Garante que fique acima de qualquer elemento de fundo se sobrepor */
+}
+
+.slide {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 0.7s ease-in-out; 
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    cursor: pointer;
+}
+
+.slide.active {
+    opacity: 1;
+    z-index: 10;
+}
+
+.slideContent {
+    background: linear-gradient(to top, var(--background-dark) 0%, rgba(0, 0, 0, 0) 100%);
+    color: var(--text-color-light);
+    padding: 1.5rem; 
+    width: 100%;
+    z-index: 20;
+}
+
+.slideContent h2 {
+    margin: 0 0 0.25rem 0; 
+    font-size: 1.8rem; 
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.slideContent p {
+    margin: 0;
+    font-size: 1rem; 
+    color: var(--accent-color); 
+    font-weight: 600; 
+}
+
+/* Controles de Navegação (Setas) */
+.navButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.3); 
+    color: var(--text-color-light);
+    border: none;
+    padding: 0.8rem 0.5rem; 
+    cursor: pointer;
+    z-index: 30;
+    font-size: 1.5rem; 
+    opacity: 0.8;
+    transition: opacity 0.3s, background 0.3s, transform 0.2s;
+}
+
+.navButton:hover {
+    opacity: 1;
+    background: var(--background-dark); 
+    transform: translateY(-50%) scale(1.05); 
+}
+
+.prev {
+    left: 0;
+    border-radius: 0 16px 16px 0;
+}
+
+.next {
+    right: 0;
+    border-radius: 16px 0 0 16px;
+}
+
+/* Indicadores (Dots) */
+.dotsContainer {
+    position: absolute;
+    bottom: 10px; 
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 40;
+}
+
+.dot {
+    height: 8px; 
+    width: 8px;
+    margin: 0 5px;
+    background-color: rgba(255, 255, 255, 0.4); 
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.dot:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.dot.active {
+    background-color: var(--accent-color); 
+    transform: scale(1.2); 
+}
+
+/* Responsividade Aprimorada */
+@media (max-width: 1024px) {
+    .sliderContainer {
+        height: 220px;
+        /* Ajuste também para tablets: sobe 2rem */
+        margin: -2rem auto 1.5rem auto; 
+    }
+    .slideContent {
+        padding: 1.25rem;
+    }
+    .slideContent h2 {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sliderContainer {
+        height: 200px; 
+        border-radius: 8px;
+        /* Ajuste fino para mobile */
+        margin: -1.5rem auto 1.5rem auto;
+    }
+    .slideContent {
+        padding: 1rem;
+    }
+    .slideContent h2 {
+        font-size: 1.4rem;
+    }
+    .slideContent p {
+        font-size: 0.9rem;
+    }
+    .navButton {
+        padding: 0.5rem 0.4rem;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sliderContainer {
+        height: 180px;
+        /* Em telas muito pequenas, margem negativa menor para não cortar */
+        margin: -1rem 0.5rem 1rem 0.5rem; 
+        border-radius: 6px;
+    }
+    .navButton {
+        display: none; 
+    }
+    .slideContent {
+        padding: 0.75rem;
+    }
+    .slideContent h2 {
+        font-size: 1.1rem;
+    }
+    .slideContent p {
+        font-size: 0.8rem;
+    }
+}

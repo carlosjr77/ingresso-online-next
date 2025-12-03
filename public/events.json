@@ -1,0 +1,47 @@
+[
+  {
+    "id": "show-banda-a",
+    "name": "Show de Lançamento - Banda A",
+    "date": "15/12/2025",
+    "location": "Arena Principal",
+    "price": 120.00,
+    "description": "A turnê de lançamento mais aguardada do ano. Um espetáculo de luz e som com a Banda A.",
+    "availability": 1500
+  },
+  {
+    "id": "congresso-tech-2026",
+    "name": "Congresso de Tecnologia 2026",
+    "date": "20/01/2026",
+    "location": "Centro de Convenções",
+    "price": 450.00,
+    "description": "Três dias de imersão no futuro da IA e desenvolvimento web. Palestrantes internacionais e workshops práticos.",
+    "availability": 500
+  },
+  {
+    "id": "festival-cinema",
+    "name": "Festival de Cinema Independente",
+    "date": "05/03/2026",
+    "location": "Cine Arte",
+    "price": 50.00,
+    "description": "Exibição dos melhores curtas e longas-metragens da cena independente nacional. Vote no seu favorito!",
+    "availability": 300
+  },
+  {
+    "id": "expo-automovel",
+    "name": "Expo Automóvel Luxo",
+    "date": "10/04/2026",
+    "location": "Pavilhão Metropolitano",
+    "price": 80.00,
+    "description": "Os últimos lançamentos de carros de luxo e superesportivos. Exposição e test drive (para convidados).",
+    "availability": 800
+  },
+  {
+    "id": "standup-comedia",
+    "name": "Noite de Stand-up: O Humor do Amanhã",
+    "date": "22/05/2026",
+    "location": "Teatro Central",
+    "price": 75.00,
+    "description": "Os comediantes mais promissores do Brasil em uma noite de risadas garantidas.",
+    "availability": 400
+  }
+]
