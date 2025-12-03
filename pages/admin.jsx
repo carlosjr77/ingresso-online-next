@@ -12,16 +12,27 @@ import {
 
 // --- Variáveis globais fornecidas pelo ambiente ---
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-// CORREÇÃO CRÍTICA: Sanitiza o appId, removendo barras que causavam o erro de caminho do Firestore (6 segmentos)
+// Sanitiza o appId (correção de erro de caminho do Firestore)
 const sanitizedAppId = appId.replace(/\//g, '_'); 
 
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+// Inicialização do Firebase e Variáveis de Serviço
+let app, db, auth, currentUserId = null;
+let initialized = false;
 
-// Inicialização do Firebase (globalmente, fora do componente)
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// CORREÇÃO BRUTAL: Só inicializamos o Firebase no LADO DO CLIENTE (browser)
+if (typeof window !== 'undefined' && !initialized) {
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    
+    // Tentativa de inicializar
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        initialized = true;
+    } catch (e) {
+        console.error("Firebase Initialization Failed (Client Side):", e);
+    }
+}
 // --- FIM DOS MÓDULOS FIREBASE EMBUTIDOS ---
 
 
@@ -33,11 +44,16 @@ export default function AdminPage() {
 
     // 1. Efeito para lidar com a Autenticação
     useEffect(() => {
+        if (!initialized) {
+             setAuthReady(true);
+             return;
+        }
+
         let unsubscribeAuth = () => {};
         
-        // Função para iniciar o login (anônimo ou com token)
         async function initialAuth() {
              try {
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
@@ -48,12 +64,11 @@ export default function AdminPage() {
              }
         }
         
-        // Inicia o processo de login
         initialAuth();
 
-        // O listener onAuthStateChanged é mais confiável para pegar o UID final
         unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user) {
+                currentUserId = user.uid; // Atualiza a variável global
                 setUserId(user.uid);
             } 
             setAuthReady(true);
@@ -64,13 +79,12 @@ export default function AdminPage() {
 
     // 2. Efeito para Subscrever os Pedidos (só executa após a Autenticação)
     useEffect(() => {
-        // Só tenta se a autenticação já tiver ocorrido E o userId estiver definido
-        if (!authReady || !userId) return;
+        // Só tenta se a autenticação já tiver ocorrido, o DB estiver pronto e o userId estiver definido
+        if (!authReady || !userId || !db) return;
 
         console.log("Starting Firestore subscription for UID:", userId);
         
         // Caminho da Coleção CORRIGIDO: usa o appId sanitizado
-        // Estrutura correta: artifacts/DOC_ID_SANITIZADO/users/UID_DOCUMENT/orders
         const ordersCollectionRef = collection(db, `artifacts/${sanitizedAppId}/users/${userId}/orders`);
         
         // Configura o listener em tempo real (onSnapshot)
@@ -88,12 +102,11 @@ export default function AdminPage() {
             setLoading(false);
         });
 
-        // Cleanup: Desinscreve-se do Firestore quando o componente desmontar
         return () => unsubscribeFirestore();
-    }, [authReady, userId]); // Depende do estado de Auth e do ID
+    }, [authReady, userId]);
 
     
-    // Função para formatar o preço em Reais
+    // Função para formatar o preço em Reais (com a margem de lucro já incluída)
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
@@ -166,7 +179,7 @@ export default function AdminPage() {
         .ordersTable {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px; /* Garante que a tabela não seja muito espremida em telas menores */
+            min-width: 800px; 
         }
 
         .ordersTable th, .ordersTable td {
@@ -217,7 +230,7 @@ export default function AdminPage() {
             background-color: var(--pending-color);
             color: #333;
         }
-        .status-fulfilled { /* Se você adicionar lógica de "cumprido" */
+        .status-fulfilled { 
             background-color: var(--success-color);
             color: #fff;
         }
@@ -288,7 +301,7 @@ export default function AdminPage() {
             .adminTitle { font-size: 2rem; }
         }
     `;
-    
+
     return (
         <div className="adminContainer">
             <h1 className="adminTitle">Painel de Administração Premier Pass</h1>
@@ -353,7 +366,6 @@ export default function AdminPage() {
                 </div>
             )}
             
-            {/* CORREÇÃO: Usando dangerouslySetInnerHTML para injetar o CSS, evitando o warning. */}
             <style dangerouslySetInnerHTML={{ __html: adminStyles }} />
         </div>
     );
