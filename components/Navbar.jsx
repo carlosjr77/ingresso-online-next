@@ -1,267 +1,166 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 
-const Navbar = () => {
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export default function Navbar() {
+    const [userEmail, setUserEmail] = useState(null);
+    let auth = null;
+    let authenticateUser = () => {};
+    let signOutUser = () => {};
+    
+    // --- BLINDAGEM CONTRA ERROS DE BUILD (Runtime Import) ---
+    // Usamos 'require' dentro do componente para forçar a importação em tempo de execução
+    // e evitar que o Next.js quebre o build tentando resolver caminhos.
+    try {
+        // Tenta importar as funções do utilitário APENAS no runtime
+        const firebaseUtils = require('../utils/firebaseUtils');
+        auth = firebaseUtils.getAuthService();
+        authenticateUser = firebaseUtils.authenticateUser;
+        signOutUser = firebaseUtils.signOutUser;
+    } catch(e) {
+        // Se falhar (durante o build ou se o arquivo não estiver em '../utils/'), 
+        // as variáveis ficam como 'null' ou função vazia, o que é seguro.
+    }
+    // --- FIM DA BLINDAGEM ---
 
-    // Efeito para mudar o estilo do navbar ao rolar a página
+
     useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 50) {
-                setIsScrolled(true);
+        // O useEffect só roda no lado do cliente, mas a verificação 'auth' é crucial
+        if (!auth) {
+            return;
+        }
+
+        // Listener para mudanças de estado de autenticação
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user && user.email) {
+                // Usuário autenticado por e-mail (Admin)
+                setUserEmail(user.email);
             } else {
-                setIsScrolled(false);
+                // Usuário deslogado ou anônimo
+                setUserEmail(null);
             }
-        };
+        });
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        // Tenta autenticar anonimamente ao carregar (para inicialização do Firestore)
+        authenticateUser();
 
-    const toggleMobileMenu = () => {
-        setMobileMenuOpen(!mobileMenuOpen);
+        return () => unsubscribe();
+    }, [auth]);
+    
+    // Função de Logout
+    const handleLogout = async () => {
+        try {
+            await signOutUser();
+            window.location.href = '/'; // Redireciona para a Home após logout
+        } catch(error) {
+            console.error("Logout falhou:", error);
+        }
     };
 
+
+    // --- CSS INLINE ---
+    const navStyles = `
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #0d0d0d; /* Fundo escuro */
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #00bcd4; /* Cor de destaque */
+            text-decoration: none;
+        }
+        .navLinks {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .navItem {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .navItem:hover {
+            background-color: #1a1a1a;
+        }
+        .authSection {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .userEmail {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .authButton {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .loginButton {
+            background-color: #5c6bc0; /* Azul suave */
+            color: #fff;
+        }
+        .loginButton:hover {
+            opacity: 0.8;
+        }
+        .logoutButton {
+            background-color: #ff5252; /* Vermelho para deslogar */
+            color: #fff;
+        }
+        .logoutButton:hover {
+            opacity: 0.8;
+        }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 1rem;
+            }
+            .navLinks {
+                display: none; /* Simplifica a navegação em mobile */
+            }
+        }
+    `;
+
     return (
-        <>
-            <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
-                <div className="nav-container">
-                    {/* LOGO */}
-                    <div className="logo-container">
-                        <a href="/" className="logo-link">
-                            <span className="logo-icon">🎫</span>
-                            <span className="logo-text">Premier Pass</span>
-                        </a>
-                    </div>
+        <nav className="navbar">
+            <style dangerouslySetInnerHTML={{ __html: navStyles }} />
+            
+            <a href="/" className="logo">Premier Pass</a>
+            
+            <div className="navLinks">
+                <a href="/" className="navItem">Eventos</a>
+                
+                {/* Se for Admin, mostra link para o painel */}
+                {userEmail && (
+                    <a href="/admin" className="navItem">Painel Admin</a>
+                )}
+            </div>
 
-                    {/* LINKS DESKTOP */}
-                    <div className="desktop-menu">
-                        <a href="/" className="nav-link">Home</a>
-                        <a href="#eventos" className="nav-link">Eventos</a>
-                        <a href="#sobre" className="nav-link">Sobre</a>
-                        <a href="#contato" className="nav-link">Contato</a>
-                        <button className="cta-button">Entrar</button>
-                    </div>
-
-                    {/* BOTÃO MOBILE (HAMBURGUER) */}
-                    <div className="mobile-toggle" onClick={toggleMobileMenu}>
-                        <div className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* MENU MOBILE (DROPDOWN) */}
-                <div className={`mobile-menu ${mobileMenuOpen ? 'active' : ''}`}>
-                    <a href="/" onClick={toggleMobileMenu}>Home</a>
-                    <a href="#eventos" onClick={toggleMobileMenu}>Eventos</a>
-                    <a href="#sobre" onClick={toggleMobileMenu}>Sobre</a>
-                    <a href="#contato" onClick={toggleMobileMenu}>Contato</a>
-                    <button className="mobile-cta">Acessar Conta</button>
-                </div>
-            </nav>
-
-            {/* CORREÇÃO: Removido o atributo 'jsx' para evitar o aviso no console e garantir compatibilidade */}
-            <style>{`
-                /* --- ESTILOS DO NAVBAR --- */
-                .navbar {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    z-index: 1000;
-                    transition: all 0.4s ease;
-                    background: transparent;
-                    padding: 1.5rem 0;
-                }
-
-                .navbar.scrolled {
-                    background: rgba(18, 18, 18, 0.85); /* Fundo escuro semi-transparente */
-                    backdrop-filter: blur(12px); /* Efeito de vidro */
-                    padding: 0.8rem 0; /* Fica mais fino ao rolar */
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                }
-
-                .nav-container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 0 1.5rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-
-                /* --- LOGO --- */
-                .logo-link {
-                    text-decoration: none;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    color: white;
-                }
-
-                .logo-icon {
-                    font-size: 1.8rem;
-                }
-
-                .logo-text {
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                    letter-spacing: -0.5px;
-                    background: linear-gradient(90deg, #00bcd4, #5c6bc0);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    color: #00bcd4; /* Fallback */
-                }
-
-                /* --- MENU DESKTOP --- */
-                .desktop-menu {
-                    display: flex;
-                    align-items: center;
-                    gap: 2rem;
-                }
-
-                .nav-link {
-                    color: #e0e0e0;
-                    text-decoration: none;
-                    font-weight: 500;
-                    font-size: 1rem;
-                    transition: color 0.3s, transform 0.2s;
-                    position: relative;
-                }
-
-                .nav-link:hover {
-                    color: #00bcd4;
-                }
-
-                .nav-link::after {
-                    content: '';
-                    position: absolute;
-                    width: 0;
-                    height: 2px;
-                    bottom: -4px;
-                    left: 0;
-                    background-color: #00bcd4;
-                    transition: width 0.3s ease;
-                }
-
-                .nav-link:hover::after {
-                    width: 100%;
-                }
-
-                .cta-button {
-                    background: linear-gradient(45deg, #00bcd4, #5c6bc0);
-                    color: white;
-                    border: none;
-                    padding: 0.6rem 1.5rem;
-                    border-radius: 50px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: transform 0.3s, box-shadow 0.3s;
-                    font-size: 0.95rem;
-                }
-
-                .cta-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 0 15px rgba(0, 188, 212, 0.6);
-                }
-
-                /* --- MOBILE HAMBURGUER --- */
-                .mobile-toggle {
-                    display: none;
-                    cursor: pointer;
-                }
-
-                .hamburger span {
-                    display: block;
-                    width: 25px;
-                    height: 3px;
-                    margin: 5px auto;
-                    transition: all 0.3s ease-in-out;
-                    background-color: white;
-                    border-radius: 3px;
-                }
-
-                .hamburger.open span:nth-child(1) {
-                    transform: translateY(8px) rotate(45deg);
-                }
-
-                .hamburger.open span:nth-child(2) {
-                    opacity: 0;
-                }
-
-                .hamburger.open span:nth-child(3) {
-                    transform: translateY(-8px) rotate(-45deg);
-                }
-
-                /* --- MENU MOBILE DROPDOWN --- */
-                .mobile-menu {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 0;
-                    background-color: rgba(18, 18, 18, 0.98);
-                    backdrop-filter: blur(15px);
-                    z-index: 999;
-                    overflow: hidden;
-                    transition: height 0.4s cubic-bezier(0.65, 0, 0.35, 1);
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 2rem;
-                }
-
-                .mobile-menu.active {
-                    height: 100vh;
-                    padding-top: 60px; /* Espaço para não cobrir o logo se necessário */
-                }
-
-                .mobile-menu a {
-                    color: white;
-                    font-size: 1.5rem;
-                    font-weight: 600;
-                    text-decoration: none;
-                    transition: color 0.3s;
-                }
-
-                .mobile-menu a:hover {
-                    color: #00bcd4;
-                }
-
-                .mobile-cta {
-                    background: transparent;
-                    border: 2px solid #00bcd4;
-                    color: #00bcd4;
-                    padding: 1rem 3rem;
-                    font-size: 1.2rem;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    margin-top: 1rem;
-                    cursor: pointer;
-                }
-
-                /* --- RESPONSIVIDADE --- */
-                @media (max-width: 768px) {
-                    .desktop-menu {
-                        display: none;
-                    }
-                    .mobile-toggle {
-                        display: block;
-                        z-index: 1001; /* Fica acima do menu mobile aberto */
-                    }
-                    .logo-container {
-                        z-index: 1001; /* Logo visível mesmo com menu aberto */
-                    }
-                }
-            `}</style>
-        </>
+            <div className="authSection">
+                {userEmail ? (
+                    <>
+                        <span className="userEmail">{userEmail}</span>
+                        <button onClick={handleLogout} className="authButton logoutButton">
+                            Sair
+                        </button>
+                    </>
+                ) : (
+                    <a href="/login" className="authButton loginButton">
+                        Login Admin
+                    </a>
+                )}
+            </div>
+        </nav>
     );
-};
-
-export default Navbar;
+}
