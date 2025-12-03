@@ -41,6 +41,51 @@ const mockEventsData = [
   }
 ];
 
+// --- SERVER SIDE PROPS (INTEGRAÇÃO SYMPLA - OPCIONAL) ---
+// Nota: Em ambiente de Preview, esta função pode não ser executada automaticamente.
+// O componente Home foi ajustado para funcionar mesmo sem estes dados.
+export async function getServerSideProps() {
+  const symplaApiKey = process.env.SYMPLA_API_KEY || "014cf4943f3a9b94c869b53618ac1ca69539e239a563630ce0844e309c280e1a";
+  
+  let eventsData = [];
+  let fetchError = null;
+
+  if (!symplaApiKey) {
+      eventsData = mockEventsData;
+  } else {
+    try {
+      const response = await fetch('https://api.sympla.com.br/public/v3/events', {
+        headers: {
+          's_token': symplaApiKey
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      eventsData = data.data ? data.data : mockEventsData; 
+      
+      if (eventsData.length === 0) {
+        eventsData = mockEventsData;
+      }
+
+    } catch (error) {
+      console.error("Falha ao buscar eventos da Sympla:", error);
+      fetchError = error.message;
+      eventsData = mockEventsData;
+    }
+  }
+
+  return {
+    props: {
+      initialEvents: eventsData,
+      error: fetchError
+    }
+  };
+}
+
 // --- COMPONENTES DA UI ---
 
 const Navbar = () => {
@@ -74,7 +119,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Menu Mobile */}
       {isOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 absolute w-full">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
@@ -277,49 +321,14 @@ const ProfitCalculator = () => {
   );
 };
 
-export default function Home() {
-  const [initialEvents, setInitialEvents] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function Home(props) {
+  // Ajuste para Preview: Usa as props se existirem (Vercel), senão usa o mock direto
+  const events = props.initialEvents || mockEventsData;
+  const error = props.error;
 
-  // Efeito para carregar dados (substituindo getServerSideProps)
+  // Substituto para <Head>
   useEffect(() => {
     document.title = "SymplaProfit - Maximize seus Resultados";
-    
-    const fetchEvents = async () => {
-      const symplaApiKey = "014cf4943f3a9b94c869b53618ac1ca69539e239a563630ce0844e309c280e1a";
-      
-      if (!symplaApiKey || symplaApiKey === "COLE_SUA_CHAVE_AQUI") {
-        setInitialEvents(mockEventsData);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch('https://api.sympla.com.br/public/v3/events', {
-          headers: {
-            's_token': symplaApiKey
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const eventsData = data.data ? data.data : mockEventsData;
-        
-        setInitialEvents(eventsData.length > 0 ? eventsData : mockEventsData);
-      } catch (err) {
-        console.error("Falha ao buscar eventos da Sympla:", err);
-        setError(err.message);
-        setInitialEvents(mockEventsData);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
   }, []);
 
   return (
@@ -384,18 +393,12 @@ export default function Home() {
                 <span>Nota: Exibindo dados de demonstração ({error})</span>
               </div>
             )}
-            
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {initialEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
-            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
           </div>
         </section>
 
