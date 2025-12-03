@@ -114,6 +114,181 @@ export default function AdminPage() {
         );
     }
     
+    // --- CSS do Painel de Administração como string para evitar warnings ---
+    const adminStyles = `
+        :root {
+            --accent-color: #00bcd4;
+            --text-color: #e0e0e0;
+            --bg-color: #121212;
+            --card-bg: #1f1f1f;
+            --border-color: #333;
+            --success-color: #4CAF50;
+            --pending-color: #FFC107;
+        }
+
+        /* Layout Geral */
+        .adminContainer {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 1rem;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .adminTitle {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+        .adminSubtitle {
+            font-size: 1.1rem;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+        .profitHighlight {
+            color: var(--success-color);
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .userIdDisplay {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        /* Tabela de Pedidos */
+        .ordersTableContainer {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+        .ordersTable {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px; /* Garante que a tabela não seja muito espremida em telas menores */
+        }
+
+        .ordersTable th, .ordersTable td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ordersTable th {
+            background-color: #282828;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .ordersTable td {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+        
+        .ordersTable tr:hover td {
+            background-color: #252525;
+        }
+
+        .eventName {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .profitMargin {
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        /* Tags de Status */
+        .statusTag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-pending_fulfillment {
+            background-color: var(--pending-color);
+            color: #333;
+        }
+        .status-fulfilled { /* Se você adicionar lógica de "cumprido" */
+            background-color: var(--success-color);
+            color: #fff;
+        }
+
+        /* Botão de Ação */
+        .actionButton {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #5c6bc0;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .actionButton:hover {
+            background-color: #7986cb;
+        }
+        
+        .noOrdersMessage {
+            padding: 40px;
+            text-align: center;
+            background-color: #282828;
+            border-radius: 8px;
+            border: 1px solid var(--accent-color);
+            color: #fff;
+        }
+
+        /* Responsividade para Tabelas (Mobile) */
+        @media (max-width: 768px) {
+            .ordersTable, .ordersTable thead, .ordersTable tbody, .ordersTable th, .ordersTable td, .ordersTable tr {
+                display: block;
+            }
+
+            .ordersTable thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            .ordersTable tr {
+                margin-bottom: 15px;
+                border: 1px solid var(--accent-color);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .ordersTable td {
+                border: none;
+                position: relative;
+                padding-left: 50%; 
+                text-align: right;
+            }
+
+            .ordersTable td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%; 
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--accent-color);
+            }
+
+            .adminTitle { font-size: 2rem; }
+        }
+    `;
+    
     return (
         <div className="adminContainer">
             <h1 className="adminTitle">Painel de Administração Premier Pass</h1>
@@ -178,181 +353,8 @@ export default function AdminPage() {
                 </div>
             )}
             
+            {/* CORREÇÃO: Usando dangerouslySetInnerHTML para injetar o CSS, evitando o warning. */}
+            <style dangerouslySetInnerHTML={{ __html: adminStyles }} />
         </div>
     );
 }
-
-// --- ESTILOS CSS CONSOLIDADOS PARA ADMIN ---
-<style jsx global>{`
-    :root {
-        --accent-color: #00bcd4;
-        --text-color: #e0e0e0;
-        --bg-color: #121212;
-        --card-bg: #1f1f1f;
-        --border-color: #333;
-        --success-color: #4CAF50;
-        --pending-color: #FFC107;
-    }
-
-    /* Layout Geral */
-    .adminContainer {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 4rem 1rem;
-        min-height: 100vh;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-    }
-    .adminTitle {
-        font-size: 2.5rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-        color: var(--accent-color);
-    }
-    .adminSubtitle {
-        font-size: 1.1rem;
-        color: #aaa;
-        margin-bottom: 2rem;
-    }
-    .profitHighlight {
-        color: var(--success-color);
-        font-weight: bold;
-        margin-left: 8px;
-    }
-    .userIdDisplay {
-        margin-top: 30px;
-        font-size: 0.8rem;
-        color: #555;
-    }
-
-    /* Tabela de Pedidos */
-    .ordersTableContainer {
-        overflow-x: auto;
-        border-radius: 8px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-    }
-    .ordersTable {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 800px; /* Garante que a tabela não seja muito espremida em telas menores */
-    }
-
-    .ordersTable th, .ordersTable td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .ordersTable th {
-        background-color: #282828;
-        color: var(--accent-color);
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-    }
-
-    .ordersTable td {
-        background-color: var(--card-bg);
-        color: var(--text-color);
-        vertical-align: top;
-        font-size: 0.95rem;
-    }
-    
-    .ordersTable tr:hover td {
-        background-color: #252525;
-    }
-
-    .eventName {
-        font-weight: 600;
-        color: #fff;
-    }
-
-    .profitMargin {
-        font-weight: bold;
-        color: var(--success-color);
-    }
-
-    /* Tags de Status */
-    .statusTag {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-    .status-pending_fulfillment {
-        background-color: var(--pending-color);
-        color: #333;
-    }
-    .status-fulfilled { /* Se você adicionar lógica de "cumprido" */
-        background-color: var(--success-color);
-        color: #fff;
-    }
-
-    /* Botão de Ação */
-    .actionButton {
-        display: inline-block;
-        padding: 8px 12px;
-        background-color: #5c6bc0;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        transition: background-color 0.3s;
-    }
-    .actionButton:hover {
-        background-color: #7986cb;
-    }
-    
-    .noOrdersMessage {
-        padding: 40px;
-        text-align: center;
-        background-color: #282828;
-        border-radius: 8px;
-        border: 1px solid var(--accent-color);
-        color: #fff;
-    }
-
-    /* Responsividade para Tabelas (Mobile) */
-    @media (max-width: 768px) {
-        .ordersTable, .ordersTable thead, .ordersTable tbody, .ordersTable th, .ordersTable td, .ordersTable tr {
-            display: block;
-        }
-
-        .ordersTable thead tr {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-        }
-
-        .ordersTable tr {
-            margin-bottom: 15px;
-            border: 1px solid var(--accent-color);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .ordersTable td {
-            border: none;
-            position: relative;
-            padding-left: 50%; 
-            text-align: right;
-        }
-
-        .ordersTable td:before {
-            content: attr(data-label);
-            position: absolute;
-            left: 10px;
-            width: 45%; 
-            padding-right: 10px;
-            white-space: nowrap;
-            text-align: left;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        .adminTitle { font-size: 2rem; }
-    }
-`}</style>
