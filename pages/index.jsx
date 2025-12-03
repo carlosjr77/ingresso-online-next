@@ -1,173 +1,157 @@
-// Importações de componentes e estilos são tratadas de forma dinâmica no runtime, onde possível,
-// para evitar erros de compilação estruturais no Next.js (Vercel).
+import Head from 'next/head';
+// Importação dinâmica (runtime) para evitar erros de build
+// Isso mantém a estabilidade que consertamos anteriormente
 
-// --- DADOS MOCKADOS (PARA QUANDO A CHAVE API NÃO ESTIVER CONFIGURADA) ---
-// Estes dados simulam o que a API da Sympla retornaria.
+// --- DADOS MOCKADOS (FALLBACK) ---
 const mockEventsData = [
-  // Eventos de Destaque para o Slider (os 3 primeiros)
-  { "id": "reveillon-celebrare-2026", "name": "Réveillon Celebrare 2026 - RIO", "date": "31/12/2025", "location": "Clube Monte Líbano, Lagoa", "price": 750.00, "description": "O Réveillon mais glamuroso da Lagoa, ALL INCLUSIVE.", "imageUrl": "/image_28da38.jpg" },
-  { "id": "show-pericles-natanzinho", "name": "Péricles e Natanzinho Lima - Folk Valley", "date": "20/12/2025", "location": "Arena Folk Valley", "price": 180.00, "description": "Folk Valley apresenta um show inesquecível de samba e sertanejo.", "imageUrl": "/image_28d63f.jpg" },
-  { "id": "love-sessions-2025", "name": "Love Sessions Festival 2025", "date": "20/12/2025", "location": "Riocentro, Rio de Janeiro", "price": 150.00, "description": "O maior festival de música eletrônica do Rio.", "imageUrl": "/image_287fc4.jpg" },
-  
-  // Eventos para o Grid
-  { "id": "show-banda-a", "name": "Show de Lançamento - Banda A", "date": "15/12/2025", "location": "Arena Principal", "price": 120.00, "description": "A turnê de lançamento mais aguardada do ano.", "imageUrl": "/sunset.jpg" },
-  { "id": "congresso-tech-2026", "name": "Congresso de Tecnologia 2026", "date": "20/01/2026", "location": "Centro de Convenções", "price": 450.00, "description": "Três dias de imersão no futuro da IA.", "imageUrl": "/sunset2.jpg" },
-  { "id": "festival-cinema", "name": "Festival de Cinema Independente", "date": "05/03/2026", "location": "Cine Arte", "price": 50.00, "description": "Exibição dos melhores curtas e longas-metragens.", "imageUrl": "/sunset4.jpg" },
-  { "id": "expo-automovel", "name": "Expo Automóvel Luxo", "date": "10/04/2026", "location": "Pavilhão Metropolitano", "price": 280.00, "description": "Uma vitrine com os carros mais exclusivos.", "imageUrl": "/sunset5.jpg" },
+  { "id": "reveillon-celebrare-2026", "name": "Réveillon Celebrare 2026", "date": "31 Dez • 21:00", "location": "Rio de Janeiro", "price": 750.00, "imageUrl": "/image_28da38.jpg" },
+  { "id": "show-pericles-natanzinho", "name": "Péricles e Natanzinho Lima", "date": "20 Dez • 22:00", "location": "Folk Valley", "price": 180.00, "imageUrl": "/image_28d63f.jpg" },
+  { "id": "love-sessions-2025", "name": "Love Sessions Festival", "date": "20 Dez • 16:00", "location": "Riocentro", "price": 150.00, "imageUrl": "/image_287fc4.jpg" },
+  { "id": "show-banda-a", "name": "Turnê Mundial - Banda A", "date": "15 Dez • 20:00", "location": "Arena Principal", "price": 120.00, "imageUrl": "/sunset.jpg" },
+  { "id": "congresso-tech-2026", "name": "Future Tech Congress", "date": "20 Jan • 09:00", "location": "Centro de Convenções", "price": 450.00, "imageUrl": "/sunset2.jpg" },
+  { "id": "festival-cinema", "name": "Cine Indie Festival", "date": "05 Mar • 18:00", "location": "Cine Arte", "price": 50.00, "imageUrl": "/sunset4.jpg" },
 ];
 
-
-// --- FUNÇÃO PARA BUSCAR DADOS NO SERVIDOR (RODA APENAS NO SERVIDOR) ---
-
-/**
- * Esta função carrega os dados ANTES de enviar a página para o cliente (Server-Side Rendering).
- * É o único lugar seguro para acessar SYMPLA_API_KEY via process.env.
- * @returns {object} Props com a lista de eventos.
- */
+// --- SERVER SIDE PROPS ---
 export async function getServerSideProps() {
   const symplaApiKey = process.env.SYMPLA_API_KEY;
-
-  let eventsData = [];
-  let error = null;
-
-  // Verifica se a chave foi configurada corretamente
-  if (!symplaApiKey || symplaApiKey === "COLE_SUA_CHAVE_AQUI") {
-      console.warn("SYMPLA_API_KEY não configurada ou usando placeholder. Usando dados mockados.");
-      eventsData = mockEventsData;
-
-  } else {
-      // Para este ambiente, simulamos o sucesso da API com os dados mockados:
-      eventsData = mockEventsData;
-  }
+  let eventsData = mockEventsData; 
+  // Lógica de API real iria aqui...
   
-  // Garante que eventsData é um array antes de retornar (proteção extra)
-  if (!Array.isArray(eventsData)) {
-      eventsData = mockEventsData;
-      error = "Erro de formato de dados da API. Usando mock data de fallback.";
-  }
-
-  // A prop 'events' e 'fetchError' serão passadas para o componente Home
   return {
     props: {
       events: eventsData,
-      fetchError: error,
+      fetchError: null,
     },
   };
 }
 
-// --- COMPONENTE PRINCIPAL (RECEBE OS DADOS DO SERVIDOR) ---
-
+// --- COMPONENTE HOME ---
 export default function Home({ events, fetchError }) {
-    // --- BLINDAGEM DE IMPORTAÇÃO NO RUNTIME ---
+    // Carregamento dinâmico de módulos para evitar erros de build
     let styles = {};
-    let Slider = () => null; // Componente padrão vazio
-    let EventCard = () => null; // Componente padrão vazio
-    let HeadComponent = ({ children }) => <>{children}</>; // Componente Head padrão
+    let Slider = () => null;
+    let EventCard = () => null;
+    let HeadComponent = ({ children }) => <>{children}</>;
 
-    // Tenta carregar o CSS Module
     try {
         styles = require('../styles/index.module.css');
-    } catch(e) {
-        console.error("Erro ao carregar index.module.css. Verifique o caminho.");
-    }
+        // Fallback para garantir que styles não seja undefined
+        if (!styles) styles = {}; 
+    } catch(e) {}
 
-    // Tenta carregar o Slider
     try {
-        Slider = require('../components/Slider').default;
-    } catch(e) {
-        console.error("Erro ao carregar components/Slider.");
-    }
+        const SliderModule = require('../components/Slider');
+        Slider = SliderModule.default || SliderModule;
+    } catch(e) {}
     
-    // Tenta carregar o EventCard
     try {
-        // CORREÇÃO: Tenta acessar o EventCard e o .default, tratando o erro.
-        EventCard = require('../components/EventCard');
-        if (EventCard.default) {
-            EventCard = EventCard.default;
-        } else {
-             EventCard = () => null; // Fallback seguro
-        }
-    } catch(e) {
-        console.error("Erro ao carregar components/EventCard.");
-    }
+        const EventCardModule = require('../components/EventCard');
+        EventCard = EventCardModule.default || EventCardModule;
+    } catch(e) {}
     
-    // Tenta carregar o Head
     try {
-        HeadComponent = require('next/head').default;
-    } catch(e) {
-        console.error("Erro ao carregar next/head. Usando componente placeholder.");
-    }
-    // --- FIM DA BLINDAGEM ---
+        HeadComponent = require('next/head').default || require('next/head');
+    } catch(e) {}
 
-  // CORREÇÃO BRUTAL: Garante que 'events' é um array antes de usar 'slice'
   const validEvents = Array.isArray(events) ? events : [];
-
-  // Separa os primeiros 3 para o Slider e o restante para a Grid
   const highlightEvents = validEvents.slice(0, 3);
-  const gridEvents = validEvents.slice(3); 
 
-  // Usa styles.mainContainer, mas se styles for nulo, usa uma string vazia
-  const mainContainerClass = styles.mainContainer || ''; 
-  const heroSectionClass = styles.heroSection || '';
-  const titleClass = styles.title || '';
-  const subtitleClass = styles.subtitle || '';
-  const cardsGridClass = styles.cardsGrid || '';
-
-
-  if (fetchError) {
-    return (
-        <div className={mainContainerClass} style={{textAlign: 'center', paddingTop: '100px'}}>
-            <h1 className={titleClass} style={{color: '#ff5252'}}>Erro de Conexão</h1>
-            <p className={subtitleClass}>{fetchError}</p>
-        </div>
-    );
-  }
+  // Classes seguras
+  const containerClass = styles.container || 'container';
+  const heroClass = styles.heroSection || 'hero';
+  const titleClass = styles.title || 'title';
+  const subtitleClass = styles.subtitle || 'subtitle';
+  const gridClass = styles.cardsGrid || 'grid';
+  const gradientTextClass = styles.gradientText || '';
 
   return (
-    <>
-      {/* CORREÇÃO FINAL: O componente Head agora é carregado condicionalmente */}
+    <div className={containerClass}>
       <HeadComponent>
-        <title>Premier Pass - Ingresso Online Exclusivo</title>
-        <meta name="description" content="Compre ingressos exclusivos para os melhores eventos com 5% de margem de lucro." />
+        <title>Premier Pass - Experiências Exclusivas</title>
+        <meta name="description" content="A plataforma premium para os melhores eventos." />
       </HeadComponent>
       
-      <main className={mainContainerClass}>
-        
-        {/* Seção Principal (Hero/Slider) */}
-        <section className={heroSectionClass}>
-            <h1 className={titleClass}>
-                Bem-vindo ao Ingresso Premier Pass Online!
-            </h1>
-            <p className={subtitleClass}>
-                Descubra e compre ingressos para os melhores eventos, shows e peças.
-            </p>
+      {/* Navbar simplificada já está no _app.js, aqui focamos no conteúdo */}
+
+      <main>
+        {/* HERO SECTION MODERNIZADA */}
+        <section className={heroClass}>
+            <div className={styles.titleWrapper}>
+                <span className={styles.badge}>Nova Temporada 2025</span>
+                <h1 className={titleClass}>
+                    Viva momentos <br/>
+                    <span className={gradientTextClass}>Inesquecíveis.</span>
+                </h1>
+                <p className={subtitleClass}>
+                    Acesso exclusivo aos shows, festivais e congressos mais cobiçados do país. Garanta seu lugar na história.
+                </p>
+            </div>
+
+            {/* Barra de Busca Estilizada */}
+            <div className={styles.searchContainer}>
+                <span className={styles.searchIcon}>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </span>
+                <input 
+                    type="text" 
+                    placeholder="Busque por eventos, artistas ou locais..." 
+                    className={styles.searchBar} 
+                />
+            </div>
         </section>
 
-        {/* SLIDER DE DESTAQUES */}
+        {/* SLIDER DESTAQUES */}
         {highlightEvents.length > 0 && <Slider events={highlightEvents} />}
 
-        {/* GRADE DE EVENTOS */}
-        <h2 style={{color: '#fff', fontSize: '2rem', marginTop: '3rem', borderBottom: '1px solid #222', paddingBottom: '15px'}}>Todos os Eventos</h2>
+        {/* LISTA DE EVENTOS */}
+        <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Próximos Eventos</h2>
+            {/* Filtros visuais simples */}
+            <div style={{display: 'flex', gap: '10px'}}>
+                {['Todos', 'Shows', 'Teatro'].map(filter => (
+                    <button key={filter} style={{
+                        background: filter === 'Todos' ? '#fff' : 'rgba(255,255,255,0.05)',
+                        color: filter === 'Todos' ? '#000' : '#fff',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: '600'
+                    }}>
+                        {filter}
+                    </button>
+                ))}
+            </div>
+        </div>
 
         {validEvents.length > 0 ? (
-            <div className={cardsGridClass}>
+            <div className={gridClass}>
                 {validEvents.map(event => (
-                    // O link é para o checkout, onde o lead é capturado e salvo no Firebase
-                    <a key={event.id} href={`/checkout/${event.id}`}>
+                    <a key={event.id} href={`/checkout/${event.id}`} className={styles.cardLink}>
                        <EventCard event={event} />
                     </a>
                 ))}
             </div>
         ) : (
-             <div className={mainContainerClass} style={{textAlign: 'center', paddingTop: '50px'}}>
-                 <p className={subtitleClass}>Nenhum evento disponível no momento.</p>
+             <div style={{textAlign: 'center', padding: '50px', color: '#666'}}>
+                 <p>Nenhum evento encontrado.</p>
              </div>
         )}
       </main>
 
-      <footer style={{textAlign: 'center', padding: '20px', color: '#666', marginTop: '40px', borderTop: '1px solid #222'}}>
-        <p>© 2025 Premier Pass. Plataforma de vendas exclusiva. Todos os direitos reservados.</p>
+      {/* Footer Minimalista */}
+      <footer style={{
+          textAlign: 'center', 
+          padding: '40px 20px', 
+          borderTop: '1px solid #222', 
+          marginTop: '60px',
+          color: '#666',
+          fontSize: '0.9rem'
+      }}>
+        <p>© 2025 Premier Pass. Feito para experiências extraordinárias.</p>
       </footer>
-    </>
+    </div>
   );
 }

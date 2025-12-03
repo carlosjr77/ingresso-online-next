@@ -1,115 +1,170 @@
-/*
- * Este arquivo deve conter APENAS classes CSS locais que serão usadas 
- * em componentes ou na sua página index.jsx. 
- * Estilos globais (html, body, :root) devem estar em globals.css.
- */
-
-.mainContainer {
-    /* Centraliza o conteúdo principal e garante que ele não seja muito largo */
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem 4rem 1rem; /* Adiciona padding para margem de segurança */
+/* Variáveis de Design System inspiradas em interfaces modernas */
+.container {
+    --bg-page: #050505;
+    --bg-card: #121212;
+    --bg-card-hover: #1a1a1a;
+    --border-color: #27272a;
+    --primary-gradient: linear-gradient(135deg, #00bcd4 0%, #3b82f6 100%);
+    --text-main: #ffffff;
+    --text-muted: #a1a1aa;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    
+    background-color: var(--bg-page);
     min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-main);
+    padding-bottom: 80px;
 }
 
-/* Estilos para a seção Hero */
+/* --- Hero Section --- */
 .heroSection {
+    position: relative;
+    padding: 8rem 1rem 6rem 1rem;
     text-align: center;
-    padding: 6rem 1rem 4rem 1rem;
-    color: var(--text-color); 
+    overflow: hidden;
+}
+
+/* Efeito de brilho de fundo (Glow) */
+.heroSection::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0, 188, 212, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.titleWrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(0, 188, 212, 0.1);
+    border: 1px solid rgba(0, 188, 212, 0.2);
+    border-radius: 9999px;
+    color: #22d3ee;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .title {
-    font-size: 3.5rem;
+    font-size: 4rem;
+    line-height: 1.1;
     font-weight: 800;
-    margin-bottom: 0.5rem;
-    /* Efeito de gradiente no título, alinhado ao tema escuro */
-    background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
-    
-    /* Propriedades para recortar o fundo no formato do texto */
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.gradientText {
+    background: var(--primary-gradient);
     -webkit-background-clip: text;
-    background-clip: text; /* Propriedade padrão para compatibilidade */
-    
     -webkit-text-fill-color: transparent;
-    color: transparent; /* Fallback para navegadores que suportam background-clip padrão */
+    background-clip: text;
 }
 
 .subtitle {
-    font-size: 1.5rem;
-    font-weight: 300;
-    color: var(--text-color);
-    margin-bottom: 3rem;
-    opacity: 0.85;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 3rem auto;
+    line-height: 1.6;
 }
 
-/* Estilos para a listagem de eventos */
+/* --- Barra de Busca (Visual) --- */
+.searchContainer {
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+    z-index: 2;
+}
+
+.searchBar {
+    width: 100%;
+    padding: 16px 24px;
+    padding-left: 50px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.searchBar:focus {
+    outline: none;
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.1);
+}
+
+.searchIcon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* --- Grid de Eventos --- */
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    max-width: 1200px;
+    margin: 4rem auto 2rem auto;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
 .sectionTitle {
     font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: var(--text-color);
-    padding-top: 1rem;
+    font-weight: 700;
 }
 
 .cardsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-    padding: 0 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
-.eventCard {
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--card-bg);
-    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+/* Estilo do Card (sobrescrevendo ou complementando o componente) */
+.cardLink {
+    text-decoration: none;
     display: block;
+    transition: transform 0.3s ease;
 }
 
-.eventCard:hover {
+.cardLink:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    border-color: var(--accent-color);
-}
-
-.eventCard h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    color: var(--accent-color);
-}
-
-.eventCard p {
-    margin: 0;
-    color: #a0a0a0;
-}
-
-/* Estilos do Footer */
-.footer {
-    padding: 2rem;
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-    margin-top: 2rem;
-    color: var(--footer-text);
 }
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .heroSection {
-        padding: 4rem 1rem 3rem 1rem;
-    }
     .title {
         font-size: 2.5rem;
     }
-    .subtitle {
-        font-size: 1.2rem;
-    }
-    .sectionTitle {
-        font-size: 1.5rem;
+    .heroSection {
+        padding-top: 6rem;
     }
     .cardsGrid {
-        gap: 1.5rem;
-        padding: 0;
+        grid-template-columns: 1fr;
     }
 }
