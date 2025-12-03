@@ -1,78 +1,6 @@
 import { useState, useEffect } from 'react';
-import styles from '../../styles/Detalhes.module.css'; // Reaproveita o estilo dos detalhes
 
-// --- MÓDULOS FIREBASE EMBUTIDOS ---
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
-import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    serverTimestamp 
-} from 'firebase/firestore';
-
-// --- Variáveis globais fornecidas pelo ambiente ---
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Inicialização do Firebase (globalmente, fora do componente)
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-let currentUserId = null; // Variável para armazenar o ID do usuário autenticado
-
-/**
- * Realiza a autenticação do usuário e define o ID do usuário (userId).
- * Recebe o setAuthReady setter para atualizar o estado do componente.
- */
-async function authenticateUser(setAuthReady) {
-    try {
-        if (initialAuthToken) {
-            const userCredential = await signInWithCustomToken(auth, initialAuthToken);
-            currentUserId = userCredential.user.uid;
-        } else {
-            const userCredential = await signInAnonymously(auth);
-            currentUserId = userCredential.user.uid;
-        }
-        setAuthReady(true);
-        console.log("Firebase: Autenticação concluída. User ID:", currentUserId);
-    } catch (error) {
-        console.error("Firebase Auth Error:", error);
-        setAuthReady(true); // Desbloqueia a UI mesmo em caso de erro, permitindo continuar
-    }
-}
-
-/**
- * Salva a intenção de pedido do cliente no Firestore.
- */
-async function saveOrderIntention(orderData) {
-    if (!currentUserId) {
-        console.error("Firestore Error: User ID not available for saving order.");
-        return null;
-    }
-
-    // Coleção: artifacts/{appId}/users/{userId}/orders
-    const ordersCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/orders`);
-
-    const orderPayload = {
-        ...orderData,
-        timestamp: serverTimestamp(),
-        status: 'PENDING_FULFILLMENT',
-    };
-
-    try {
-        const docRef = await addDoc(ordersCollectionRef, orderPayload);
-        return docRef.id;
-    } catch (e) {
-        console.error("Error saving order intention:", e);
-        return null;
-    }
-}
-// --- FIM DOS MÓDULOS FIREBASE EMBUTIDOS ---
-
-
-// --- DADOS MOCKADOS (Para garantir que funcione sem API por enquanto) ---
+// --- DADOS MOCKADOS (MOVIDOS PARA FORA PARA O BUILD DO NEXT.JS) ---
 const mockEventsData = [
     {
         "id": "show-banda-a",
@@ -140,18 +68,126 @@ const mockEventsData = [
     }
 ];
 
-// Função para obter o ID diretamente do path (funciona no lado do cliente)
-const getPathId = () => {
-    if (typeof window === 'undefined') return null;
-    const pathSegments = window.location.pathname.split('/');
-    // Assume a estrutura /checkout/[id]
-    return pathSegments[pathSegments.length - 1];
-};
+// --- NEXT.JS BUILD FUNCTIONS (CORREÇÃO DE BUILD) ---
 
-export default function CheckoutPage() {
-  const id = getPathId();
-  const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
+// 1. GERA OS CAMINHOS CONHECIDOS
+export async function getStaticPaths() {
+    const paths = mockEventsData.map((event) => ({
+        params: { id: event.id },
+    }));
+
+    return { paths, fallback: false }; // fallback: false impede que caminhos desconhecidos sejam criados
+}
+
+// 2. CARREGA OS DADOS PARA AQUELES CAMINHOS (Mock data)
+export async function getStaticProps({ params }) {
+    const event = mockEventsData.find((e) => e.id === params.id);
+    
+    // Se o evento for encontrado, retorna os dados para serem usados pelo componente.
+    if (!event) {
+        return { notFound: true };
+    }
+
+    return {
+        props: {
+            // Apenas o evento é passado via props.
+            eventData: event,
+        },
+    };
+}
+
+
+// --- MÓDULOS FIREBASE EMBUTIDOS ---
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    serverTimestamp 
+} from 'firebase/firestore';
+
+// Variáveis de ambiente
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const sanitizedAppId = appId.replace(/\//g, '_'); 
+
+// Inicialização do Firebase e Variáveis de Serviço
+let app, db, auth, currentUserId = null;
+let initialized = false;
+
+// CORREÇÃO BRUTAL: Só inicializamos o Firebase no LADO DO CLIENTE (browser)
+if (typeof window !== 'undefined' && !initialized) {
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        initialized = true;
+    } catch (e) {
+        console.error("Firebase Initialization Failed (Client Side):", e);
+    }
+}
+
+/**
+ * Realiza a autenticação do usuário e define o ID do usuário (userId).
+ */
+async function authenticateUser(setAuthReady) {
+    if (!initialized || !auth) {
+        setAuthReady(true);
+        console.error("Firebase Auth Skipped: Not initialized.");
+        return;
+    }
+
+    // CORREÇÃO: Usando a referência correta à variável global
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    
+    try {
+        if (initialAuthToken) {
+            const userCredential = await signInWithCustomToken(auth, initialAuthToken);
+            currentUserId = userCredential.user.uid;
+        } else {
+            const userCredential = await signInAnonymously(auth);
+            currentUserId = userCredential.user.uid;
+        }
+        setAuthReady(true);
+    } catch (error) {
+        console.error("Firebase Auth Error:", error);
+        setAuthReady(true);
+    }
+}
+
+/**
+ * Salva a intenção de pedido do cliente no Firestore.
+ */
+async function saveOrderIntention(orderData) {
+    if (!currentUserId || !db) {
+        console.error("Firestore Error: DB not available or User ID not available for saving order.");
+        return null;
+    }
+
+    const ordersCollectionRef = collection(db, `artifacts/${sanitizedAppId}/users/${currentUserId}/orders`);
+
+    const orderPayload = {
+        ...orderData,
+        timestamp: serverTimestamp(),
+        status: 'PENDING_FULFILLMENT',
+    };
+
+    try {
+        const docRef = await addDoc(ordersCollectionRef, orderPayload);
+        return docRef.id;
+    } catch (e) {
+        console.error("Error saving order intention:", e);
+        return null;
+    }
+}
+// --- FIM DOS MÓDULOS FIREBASE EMBUTIDOS ---
+
+export default function CheckoutPage({ eventData }) { // Recebe eventData diretamente das props
+  // Se eventData não for fornecido (não deveria acontecer com fallback: false), usa estado local
+  const [event, setEvent] = useState(eventData || null);
+  const [loading, setLoading] = useState(false); // Já carregado
   const [processing, setProcessing] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   
@@ -164,23 +200,11 @@ export default function CheckoutPage() {
     ticketQuantity: 1
   });
 
-  // 1. AUTENTICAÇÃO E CARREGAMENTO DE DADOS
+  // 1. AUTENTICAÇÃO
   useEffect(() => {
-    // Inicia a autenticação do Firebase usando a função embutida
+    // Inicia a autenticação do Firebase no lado do cliente
     authenticateUser(setAuthReady);
-
-    if (!id) {
-        setLoading(false);
-        return;
-    }
-    
-    // Simulação de busca do evento
-    const found = mockEventsData.find(e => e.id === id);
-    if (found) {
-        setEvent(found);
-    }
-    setLoading(false);
-  }, [id]);
+  }, []);
 
   // --- LÓGICA DE PREÇO (Sua Margem de Lucro) ---
   const PREMIER_TAX = 0.05; // 5%
@@ -189,7 +213,6 @@ export default function CheckoutPage() {
   const totalPrice = premierPriceUnit * formData.ticketQuantity;
 
   const handleInputChange = (e) => {
-    // Função para obter o valor correto do input, mesmo em selects
     let value = e.target.value;
     if (e.target.name === 'ticketQuantity') {
         value = parseInt(value);
@@ -199,12 +222,12 @@ export default function CheckoutPage() {
 
   const handleCheckout = async (e) => {
     e.preventDefault();
-    if (!authReady || processing) return;
+    if (!authReady || processing || !event) return;
 
     setProcessing(true);
 
     try {
-      // 1. SALVAR O PEDIDO NO FIREBASE (usando a função embutida)
+      // ... (Lógica de salvamento idêntica à versão anterior) ...
       const orderData = {
         eventId: event.id,
         eventName: event.name,
@@ -225,16 +248,15 @@ export default function CheckoutPage() {
       const orderId = await saveOrderIntention(orderData);
 
       if (orderId) {
-        // 2. Feedback visual
-        // Substituindo alert por console.log e mensagem na tela
-        console.log(`Sucesso! Pedido salvo no Firebase. ID: ${orderId}`);
-        
-        // 3. Redirecionar para o link de compra real na Sympla
+        const feedbackElement = document.getElementById('buyFeedback');
+        if (feedbackElement) {
+             feedbackElement.innerText = "Pedido salvo! Redirecionando para Sympla...";
+        }
+
         if (event.symplaUrl) {
              window.open(event.symplaUrl, '_blank');
         }
 
-        // 4. Redirecionar para home ou tela de sucesso após 2 segundos
         setTimeout(() => {
             window.location.href = '/'; 
         }, 2000);
@@ -245,18 +267,15 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error("Erro no checkout:", error);
-      // Mensagem customizada de erro no formulário
       const feedbackElement = document.getElementById('buyFeedback');
       if (feedbackElement) {
           feedbackElement.innerText = "Erro ao processar o pedido. Tente novamente ou verifique sua conexão.";
       }
     } finally {
-      // Apenas mantém o processamento por 2 segundos, mesmo se der erro, para dar tempo de ler a mensagem
       setTimeout(() => setProcessing(false), 2000);
     }
   };
 
-  if (loading || !authReady) return <div className="loadingContainer"><div className="spinner"></div><p className="loadingText">Preparando o checkout...</p></div>;
   if (!event) return <div className="errorContainer"><h1 className="errorTitle">Evento não encontrado</h1></div>;
 
   return (
