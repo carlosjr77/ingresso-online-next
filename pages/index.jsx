@@ -1,5 +1,5 @@
-import { useState } from 'react';
-// Não precisamos mais de useEffect para fetch, o dado vem por props
+// --- IMPORTAÇÕES BÁSICAS ---
+// O useState não é mais necessário, pois o estado é gerenciado pelo getServerSideProps.
 
 // --- LÓGICA DE SERVIDOR: BUSCA EVENTOS, APLICA LUCRO E RETORNA ---
 export async function getServerSideProps() {
@@ -77,7 +77,7 @@ export async function getServerSideProps() {
 // --- FIM DA LÓGICA DE SERVIDOR ---
 
 
-export default function Home({ events = [], error }) { // CORREÇÃO AQUI: events agora tem valor padrão []
+export default function Home({ events = [], error }) { // BLINDAGEM: events SEMPRE será um array.
   
   // --- CSS do Painel de Administração como string para evitar warnings ---
   const homeStyles = `
